@@ -3,19 +3,23 @@ from datetime import datetime
 role = None
 
 def buat_tabel():
-    conn = sqlite3.connect('DB_Arsip.db')
-    cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS surat (
-        surat_id INTEGER PRIMARY KEY,
-        nomor_surat VARCHAR(50),
-        pengirim VARCHAR(100),
-        isi_surat TEXT,
-        tanggal_terima DATE,
-        status TEXT CHECK(status IN ('proses', 'selesai'))
-    )''')
-    conn.commit()
-    conn.close()
-
+    try:
+        conn = sqlite3.connect('DB_Arsip.db')
+        cursor = conn.cursor()
+        cursor.execute('''CREATE TABLE IF NOT EXISTS surat (
+            surat_id INTEGER PRIMARY KEY,
+            nomor_surat VARCHAR(50),
+            pengirim VARCHAR(100),
+            isi_surat TEXT,
+            tanggal_terima DATE,
+            status TEXT CHECK(status IN ('proses', 'selesai'))
+        )''')
+        conn.commit()
+        print("Tabel surat berhasil dibuat atau sudah ada.")
+    except sqlite3.Error as e:
+        print(f"Error saat membuat tabel: {e}")
+    finally:
+        conn.close()
 def tambah_surat(nomor_surat, pengirim, isi_surat, tanggal_terima, status):
     try:
         conn = sqlite3.connect('DB_Arsip.db')
