@@ -244,7 +244,7 @@ class Account:
                 except FileNotFoundError:
                     print("No logs found.")
             elif choice == "10":
-                print("Kembali ke Menu Login...")
+                print("Kembali ke Menu Utama...")
                 menu()
                 break
             else:
