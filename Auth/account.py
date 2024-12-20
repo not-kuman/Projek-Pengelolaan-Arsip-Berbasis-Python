@@ -3,14 +3,16 @@ import hashlib
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
+
 def create_db_connection():
-    """Helper function to create and return a database connection."""
     return sqlite3.connect('DB_Arsip.db')
+
 def create_users_table():
     conn = create_db_connection()
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS users (
             username TEXT PRIMARY KEY,
+            email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             role TEXT NOT NULL CHECK(role IN ('admin', 'user'))
         )''')
@@ -46,9 +48,10 @@ def create_account():
     cursor = conn.cursor()
     print("Buat akun baru.")
     username = input("Masukkan username baru: ")
-    cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+    email = input("Masukkan email baru: ")
+    cursor.execute("SELECT * FROM users WHERE username = ? OR email = ?", (username, email))
     if cursor.fetchone():
-        print("Username sudah terdaftar. Coba username lain.")
+        print("Username atau email sudah terdaftar. Coba yang lain.")
     else:
         password = input("Masukkan password baru: ")
         if len(password) < 6:
@@ -60,9 +63,12 @@ def create_account():
         if role not in ["admin", "user"]:
             print("Peran tidak valid. Hanya 'admin' atau 'user' yang diperbolehkan.")
         else:
-            cursor.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", (username, hashed_password, role))
-            conn.commit()
-            print(f"Akun {username} berhasil dibuat sebagai {role}.")
+            try:
+                cursor.execute("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)", (username, email, hashed_password, role))
+                conn.commit()
+                print(f"Akun {username} berhasil dibuat sebagai {role}.")
+            except sqlite3.IntegrityError as e:
+                print(f"Terjadi kesalahan: {e}")
     conn.close()
 
 def edit_account():
@@ -70,12 +76,22 @@ def edit_account():
     conn = create_db_connection()
     cursor = conn.cursor()
     print("\nEdit Akun:")
+    print("Daftar Akun:")
+    cursor.execute("SELECT username, email, role FROM users")
+    accounts = cursor.fetchall()
+    if accounts:
+        for account in accounts:
+            print(f"Username: {account[0]}, Email: {account[1]}, Role: {account[2]}")
+    else:
+        print("Tidak ada akun yang terdaftar.")
+        conn.close()
+        return
+    
     username = input("Masukkan username yang ingin diedit: ")
     cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
     user = cursor.fetchone()
     if user:
-        print(f"Data Akun: Username: {user[0]}, Role: {user[2]}")
-        
+        print(f"Data Akun: Username: {user[0]}, Email: {user[1]}, Role: {user[3]}")
         new_password = input("Masukkan password baru: ")
         if len(new_password) < 6:
             print("Password harus lebih dari 6 karakter!")
@@ -83,13 +99,15 @@ def edit_account():
             return
         hashed_new_password = hash_password(new_password)
         new_role = input("Masukkan peran baru (admin/user): ").lower()
-        
         if new_role not in ["admin", "user"]:
             print("Peran tidak valid. Peran harus 'admin' atau 'user'.")
         else:
-            cursor.execute("UPDATE users SET password = ?, role = ? WHERE username = ?", (hashed_new_password, new_role, username))
-            conn.commit()
-            print(f"Akun {username} berhasil diperbarui!")
+            try:
+                cursor.execute("UPDATE users SET password = ?, role = ? WHERE username = ?", (hashed_new_password, new_role, username))
+                conn.commit()
+                print(f"Akun {username} berhasil diperbarui!")
+            except sqlite3.Error as e:
+                print(f"Terjadi kesalahan saat memperbarui akun: {e}")
     else:
         print("Username tidak ditemukan.")
     conn.close()
@@ -99,24 +117,47 @@ def delete_account():
     conn = create_db_connection()
     cursor = conn.cursor()
     print("\nHapus Akun:")
+    print("Daftar Akun:")
+    cursor.execute("SELECT username, email, role FROM users")
+    accounts = cursor.fetchall()
+    if accounts:
+        for account in accounts:
+            print(f"Username: {account[0]}, Email: {account[1]}, Role: {account[2]}")
+    else:
+        print("Tidak ada akun yang terdaftar.")
+        conn.close()
+        return
+
     username = input("Masukkan username yang ingin dihapus: ")
     cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
     user = cursor.fetchone()
     if user:
-        cursor.execute("DELETE FROM users WHERE username = ?", (username,))
-        conn.commit()
-        print(f"Akun {username} berhasil dihapus!")
+        try:
+            cursor.execute("DELETE FROM users WHERE username = ?", (username,))
+            conn.commit()
+            print(f"Akun {username} berhasil dihapus!")
+        except sqlite3.Error as e:
+            print(f"Terjadi kesalahan saat menghapus akun: {e}")
     else:
         print("Username tidak ditemukan.")
     conn.close()
 
+def manage_user():
+    create_users_table()
+    conn = create_db_connection()
+    cursor = conn.cursor()
+    print("\nKelola Pengguna:")
+    cursor.execute("SELECT username, email, role FROM users")
+    accounts = cursor.fetchall()
+    if accounts:
+        print("Daftar Akun:")
+        for account in accounts:
+            print(f"Username: {account[0]}, Email: {account[1]}, Role: {account[2]}")
+    else:
+        print("Tidak ada akun yang terdaftar.")
+    conn.close()
+
 def admin_access():
-    from Data.archives import halaman_arsip
-    from Data.category import halaman_kategori
-    from Data.logs import log_action
-    from Data.surat import halaman_surat
-    from Data.tindak_lanjut import tindak_lanjut
-    from mainmenu import menu
     username = "admin"  # Replace with actual logic if needed
     while True:
         print("\nSelamat Datang di Panel Admin")
@@ -124,104 +165,53 @@ def admin_access():
         print("2. Edit Akun")
         print("3. Hapus Akun")
         print("4. Kelola Pengguna")
-        print("5. Kelola Arsip")
-        print("6. Kelola Kategori")
-        print("7. Kelola Surat")
-        print("8. Kelola Tindak Lanjut")
-        print("9. Lihat Logs")
-        print("10. Kembali ke Menu Utama")
-        choice = input("Pilih opsi (1-10): ")
+        print("5. Kembali ke Menu Utama")
+        choice = input("Pilih opsi (1-5): ")
         if choice == "1":
             create_account()
-            log_action("Created a new account", username)
         elif choice == "2":
             edit_account()
-            log_action("Edited an account", username)
         elif choice == "3":
             delete_account()
-            log_action("Deleted an account", username)
         elif choice == "4":
-            print( " Menu Belum Tersedia")
-            # manage_user() 
-            log_action("Managed user accounts", username)
+            manage_user()
         elif choice == "5":
-            halaman_arsip()
-            log_action("Managed archives", username)
-        elif choice == "6":
-            halaman_kategori()
-            log_action("Managed categories", username)
-        elif choice == "7":
-            halaman_surat()
-            log_action("Managed surat", username)
-        elif choice == "8":
-            tindak_lanjut()
-            log_action("Managed tindak lanjut", username)
-        elif choice == "9":
-            # Display logs
-            print("\n--- Logs ---")
-            try:
-                with open("logs.txt", "r") as log_file:
-                    print(log_file.read())  # Display all logs
-            except FileNotFoundError:
-                print("No logs found.")
-        elif choice == "10":
             print("Kembali ke Menu Utama...")
-            menu()
             break
         else:
             print("Opsi tidak valid. Silakan pilih lagi.")
-def user_access():
-    from Data.archives import halaman_arsip
-    from Data.category import halaman_kategori
-    from Data.surat import halaman_surat
-    from mainmenu import menu
 
+def user_access():
     while True:
         print("\nSelamat Datang di Panel User")
         print("1. Buat Akun Baru")
-        print("2. Kelola Arsip")
-        print("3. Kelola Kategori")
-        print("4. Kelola Surat")
-        print("5. Kembali ke Menu Utama")
-        choice = input("Pilih opsi (1-10): ")
+        print("2. Kembali ke Menu Utama")
+        choice = input("Pilih opsi (1-2): ")
         if choice == "1":
             create_account()
         elif choice == "2":
-            halaman_arsip()
-        elif choice == "3":
-            halaman_kategori()
-        elif choice == "4":
-            halaman_surat()
-        elif choice == "5":
             print("Kembali ke Menu Utama...")
-            menu()
             break
         else:
             print("Opsi tidak valid. Silakan pilih lagi.")
 
 def main():
-    from mainmenu import menu
-    print("\n Selamat Datang Pengguna, Silahkan Pilih Opsi dibawah Ini !!.")
     while True:
-        print("1. Buat Akun Baru")
-        print("2. Login")
-        print("3. Keluar ke Menu Utama")
-        choice = input("Pilih opsi (1, 2, 3): ")
-        
+        print("\nSelamat Datang!")
+        print("1. Login")
+        print("2. Keluar")
+        choice = input("Pilih opsi (1-2): ")
         if choice == "1":
-            create_account()
-        elif choice == "2":
             role = login()
             if role == "admin":
                 admin_access()
             elif role == "user":
                 user_access()
-        elif choice == "3":
-            print("Kembali ke Menu Utama...")
-            menu()
+        elif choice == "2":
+            print("Keluar dari aplikasi. Sampai jumpa!")
             break
         else:
-            print("Opsi tidak valid. Harap pilih 1, 2, atau 3.")
+            print("Opsi tidak valid. Silakan pilih lagi.")
 
 if __name__ == "__main__":
     main()
