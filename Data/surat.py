@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime
+role = None
 
 def buat_tabel():
     conn = sqlite3.connect('DB_Arsip.db')

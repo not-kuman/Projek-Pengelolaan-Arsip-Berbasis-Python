@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime
+role = None
 
 def create_db_connection():
     """Helper function to create and return a database connection."""

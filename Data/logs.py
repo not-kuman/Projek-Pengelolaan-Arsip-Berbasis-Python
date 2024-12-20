@@ -2,6 +2,7 @@ import datetime
 import os
 import sqlite3
 
+
 def log_action(action, username):
     """
     Log an action performed by a user to a log file.

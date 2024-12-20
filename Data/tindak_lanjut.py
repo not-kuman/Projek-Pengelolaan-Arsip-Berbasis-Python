@@ -1,4 +1,5 @@
 import sqlite3
+role = None
 
 def tindak_lanjut():
     conn = sqlite3.connect('DB_Arsip.db')
