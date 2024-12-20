@@ -47,7 +47,7 @@ def main_menu():
         print("2. Keluar")
         choice = input("Pilih opsi (1/2): ")
         if choice == "1":
-            role = Account.login()
+            role = Account
             if role == "admin":
                 Account.admin_access()
             elif role == "user":

@@ -131,7 +131,7 @@ def halaman_kategori():
                 print("ID kategori harus berupa angka.")
         elif pilihan == 5:
                 print("Anda Akan Kembali Ke Menu user/admin!!")
-                role = Account.login()
+                role = Account
                 if role == "admin":
                     Account.admin_access()
                 elif role == "user":
