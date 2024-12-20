@@ -1,6 +1,6 @@
 def menu():
     try:
-        from Auth.account import main
+        from Auth.account import Account
         while True:
             print("\nMenu Utama:")
             print("1. Mulai")
@@ -8,7 +8,7 @@ def menu():
             choice = input("Pilih opsi (1, 2): ")
             
             if choice == "1":
-                main()
+                Account.main()
             elif choice == "2":
                 print("Terima kasih telah menggunakan aplikasi.")
                 break
