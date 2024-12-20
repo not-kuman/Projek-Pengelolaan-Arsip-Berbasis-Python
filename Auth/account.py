@@ -17,7 +17,13 @@ def create_users_table():
         )''')
     conn.commit()
     conn.close()
+import re  # Untuk validasi email
 
+def validate_email(email):
+    """Fungsi untuk memvalidasi format email."""
+    if '@' not in email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        return False
+    return True
 class Account:
     def login():
         create_users_table()
@@ -50,6 +56,10 @@ class Account:
         print("Buat akun baru.")
         username = input("Masukkan username baru: ")
         email = input("Masukkan email: ")
+        if not validate_email(email):
+            print("Error: Format email tidak valid! Harap masukkan email dengan benar (contoh: user@example.com).")
+            conn.close()
+            return 
         cursor.execute("SELECT * FROM users WHERE username = ? OR email = ?", (username, email))
         if cursor.fetchone():
             print("Username atau email sudah terdaftar. Coba yang lain.")
@@ -86,28 +96,49 @@ class Account:
             print("Tidak ada akun yang terdaftar.")
             conn.close()
             return
-        
         username = input("Masukkan username yang ingin diedit: ")
         cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
         user = cursor.fetchone()
         if user:
             print(f"Data Akun: Username: {user[0]}, Email: {user[1]}, Role: {user[3]}")
-            new_password = input("Masukkan password baru: ")
-            if len(new_password) < 6:
+            new_email = input("Masukkan email baru (atau tekan Enter untuk tidak mengubah): ")
+            if new_email:
+                if not validate_email(new_email):
+                    print("Error: Format email tidak valid! Harap masukkan email dengan benar (contoh: user@example.com).")
+                    conn.close()
+                    return
+                cursor.execute("SELECT * FROM users WHERE email = ?", (new_email,))
+                if cursor.fetchone():
+                    print("Email baru sudah terdaftar. Coba yang lain.")
+                    conn.close()
+                    return
+            new_password = input("Masukkan password baru (atau tekan Enter untuk tidak mengubah): ")
+            if new_password and len(new_password) < 6:
                 print("Password harus lebih dari 6 karakter!")
                 conn.close()
                 return
-            hashed_new_password = hash_password(new_password)
-            new_role = input("Masukkan peran baru (admin/user): ").lower()
-            if new_role not in ["admin", "user"]:
+            hashed_new_password = hash_password(new_password) if new_password else user[2]
+            new_role = input("Masukkan peran baru (admin/user) atau tekan Enter untuk tidak mengubah: ").lower()
+            if new_role and new_role not in ["admin", "user"]:
                 print("Peran tidak valid. Peran harus 'admin' atau 'user'.")
-            else:
-                try:
-                    cursor.execute("UPDATE users SET password = ?, role = ? WHERE username = ?", (hashed_new_password, new_role, username))
-                    conn.commit()
-                    print(f"Akun {username} berhasil diperbarui!")
-                except sqlite3.Error as e:
-                    print(f"Terjadi kesalahan saat memperbarui akun: {e}")
+                conn.close()
+                return
+            try:
+                cursor.execute("""
+                    UPDATE users 
+                    SET email = ?, password = ?, role = ? 
+                    WHERE username = ?""",
+                    (
+                        new_email if new_email else user[1],
+                        hashed_new_password,
+                        new_role if new_role else user[3],
+                        username
+                    )
+                )
+                conn.commit()
+                print(f"Akun {username} berhasil diperbarui!")
+            except sqlite3.Error as e:
+                print(f"Terjadi kesalahan saat memperbarui akun: {e}")
         else:
             print("Username tidak ditemukan.")
         conn.close()
@@ -127,17 +158,21 @@ class Account:
             print("Tidak ada akun yang terdaftar.")
             conn.close()
             return
-
         username = input("Masukkan username yang ingin dihapus: ")
         cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
         user = cursor.fetchone()
         if user:
-            try:
-                cursor.execute("DELETE FROM users WHERE username = ?", (username,))
-                conn.commit()
-                print(f"Akun {username} berhasil dihapus!")
-            except sqlite3.Error as e:
-                print(f"Terjadi kesalahan saat menghapus akun: {e}")
+            print(f"Akun ditemukan: Username: {user[0]}, Email: {user[1]}, Role: {user[3]}")
+            confirm = input("Apakah Anda yakin ingin menghapus akun ini? (y/n): ").lower()
+            if confirm == "y":
+                try:
+                    cursor.execute("DELETE FROM users WHERE username = ?", (username,))
+                    conn.commit()
+                    print(f"Akun {username} berhasil dihapus!")
+                except sqlite3.Error as e:
+                    print(f"Terjadi kesalahan saat menghapus akun: {e}")
+            else:
+                print("Penghapusan dibatalkan.")
         else:
             print("Username tidak ditemukan.")
         conn.close()
