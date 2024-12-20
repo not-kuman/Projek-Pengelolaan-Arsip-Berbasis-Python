@@ -198,7 +198,7 @@ class Account:
         from Data.surat import halaman_surat
         from Data.tindak_lanjut import tindak_lanjut
         from mainmenu import menu
-        username = "admin"  # Replace with actual logic if needed
+        username = "admin"
         while True:
             print("\nSelamat Datang di Panel Admin")
             print("1. Buat Akun Baru")
@@ -213,16 +213,16 @@ class Account:
             print("10. Kembali ke Menu Utama")
             choice = input("Pilih opsi (1-10): ")
             if choice == "1":
-                create_account()
+                Account.create_account()
                 log_action("Created a new account", username)
             elif choice == "2":
-                edit_account()
+                Account.edit_account()
                 log_action("Edited an account", username)
             elif choice == "3":
-                delete_account()
+                Account.delete_account()
                 log_action("Deleted an account", username)
             elif choice == "4":
-                manage_user()
+                Account.manage_user()
                 log_action("Managed user accounts", username)
             elif choice == "5":
                 halaman_arsip()
@@ -245,7 +245,7 @@ class Account:
                     print("No logs found.")
             elif choice == "10":
                 print("Kembali ke Menu Login...")
-                main()
+                menu()
                 break
             else:
                 print("Opsi tidak valid. Silakan pilih lagi.")
@@ -283,7 +283,7 @@ class Account:
             print("7. Kembali ke Menu Utama")
             choice = input("Pilih opsi (1-7): ")
             if choice == "1":
-                create_account()
+                Account.create_account()
             elif choice == "2":
                 halaman_arsip()
             elif choice == "3":
@@ -291,12 +291,12 @@ class Account:
             elif choice == "4":
                 halaman_surat()
             elif choice == "5":
-                user_faq()
+                Account.user_faq()
             elif choice == "6":
-                customer_service()
+                Account.customer_service()
             elif choice == "7":
                 print("Kembali ke Menu Login...")
-                main()
+                Account.main()
                 break
             else:
                 print("Opsi tidak valid. Silakan pilih lagi.")
@@ -311,13 +311,13 @@ class Account:
             choice = input("Pilih opsi (1, 2, 3): ")
             
             if choice == "1":
-                create_account()
+                Account.create_account()
             elif choice == "2":
-                role = login()
+                role = Account.login()
                 if role == "admin":
-                    admin_access()
+                    Account.admin_access()
                 elif role == "user":
-                    user_access()
+                    Account.user_access()
                 else:
                     print("Login gagal. Silakan coba lagi.")
             elif choice == "3":
