@@ -5,16 +5,14 @@ role = None
 def buat_tabel():
     conn = sqlite3.connect('DB_Arsip.db')
     cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS surat (
-            surat_id INTEGER PRIMARY KEY,
-            nomor_surat VARCHAR(50),
-            pengirim VARCHAR(100),
-            isi_surat TEXT,
-            tanggal_terima DATE,
-            status TEXT CHECK(status IN ('proses', 'selesai'))
-        )
-    ''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS surat (
+        surat_id INTEGER PRIMARY KEY,
+        nomor_surat VARCHAR(50),
+        pengirim VARCHAR(100),
+        isi_surat TEXT,
+        tanggal_terima DATE,
+        status TEXT CHECK(status IN ('proses', 'selesai'))
+    )''')
     conn.commit()
     conn.close()
 
@@ -22,10 +20,8 @@ def tambah_surat(nomor_surat, pengirim, isi_surat, tanggal_terima, status):
     try:
         conn = sqlite3.connect('DB_Arsip.db')
         cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO surat (nomor_surat, pengirim, isi_surat, tanggal_terima, status)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (nomor_surat, pengirim, isi_surat, tanggal_terima, status))
+        cursor.execute('''INSERT INTO surat (nomor_surat, pengirim, isi_surat, tanggal_terima, status)
+                          VALUES (?, ?, ?, ?, ?)''', (nomor_surat, pengirim, isi_surat, tanggal_terima, status))
         conn.commit()
     except sqlite3.Error as e:
         print(f"Error saat menambahkan surat: {e}")
@@ -49,11 +45,10 @@ def edit_surat(surat_id, new_nomor_surat, new_pengirim, new_isi_surat, new_tangg
     try:
         conn = sqlite3.connect('DB_Arsip.db')
         cursor = conn.cursor()
-        cursor.execute('''
-            UPDATE surat
-            SET nomor_surat = ?, pengirim = ?, isi_surat = ?, tanggal_terima = ?, status = ?
-            WHERE surat_id = ?
-        ''', (new_nomor_surat, new_pengirim, new_isi_surat, new_tanggal_terima, new_status, surat_id))
+        cursor.execute('''UPDATE surat
+                          SET nomor_surat = ?, pengirim = ?, isi_surat = ?, tanggal_terima = ?, status = ?
+                          WHERE surat_id = ?''', 
+                       (new_nomor_surat, new_pengirim, new_isi_surat, new_tanggal_terima, new_status, surat_id))
         conn.commit()
     except sqlite3.Error as e:
         print(f"Error saat mengedit surat: {e}")
@@ -64,10 +59,7 @@ def hapus_surat(surat_id):
     try:
         conn = sqlite3.connect('DB_Arsip.db')
         cursor = conn.cursor()
-        cursor.execute('''
-            DELETE FROM surat
-            WHERE surat_id = ?
-        ''', (surat_id,))
+        cursor.execute('''DELETE FROM surat WHERE surat_id = ?''', (surat_id,))
         conn.commit()
     except sqlite3.Error as e:
         print(f"Error saat menghapus surat: {e}")
@@ -114,7 +106,7 @@ def halaman_surat():
             if role == "admin":
                 Account.admin_access()
             elif role == "user":
-                Account.user_access
+                Account.user_access()
         elif pilihan == 6:
             print("Anda Akan Kembali Ke Menu Login!!")
             Account.main()
@@ -127,6 +119,6 @@ def halaman_surat():
     except ValueError:
         print("Masukkan angka untuk memilih. Silakan coba lagi.")
         halaman_surat()
-
 if __name__ == "__main__":
+    buat_tabel() 
     halaman_surat()
