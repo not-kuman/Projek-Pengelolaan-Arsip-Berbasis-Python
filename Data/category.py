@@ -89,12 +89,16 @@ def hapus_kategori(categories_id):
 
 def halaman_kategori():
     buat_tabel_kategori()
+    from Auth.account import Account
+    from mainmenu import menu
     print("\n--- Halaman Kategori ---")
     print("1. Tambah Kategori")
     print("2. Lihat Kategori")
     print("3. Edit Kategori")
     print("4. Hapus Kategori")
-    print("5. Kembali ke Menu Utama")
+    print("5. Kembali ke Menu user/admin")
+    print("6. Kembali ke Menu Login")
+    print("7. Kembali ke Menu Utama")
 
     try:
         pilihan = int(input("Masukkan pilihan: "))
@@ -125,12 +129,21 @@ def halaman_kategori():
             except ValueError:
                 print("ID kategori harus berupa angka.")
         elif pilihan == 5:
-            print("Kembali ke Menu Utama...")
-            from mainmenu import menu
-            menu()
+                print("Anda Akan Kembali Ke Menu user/admin!!")
+                role = Account.login()
+                if role == "admin":
+                    Account.admin_access()
+                elif role == "user":
+                    Account.user_access
+        elif pilihan == 6:
+                print("Anda Akan Kembali Ke Menu Login!!")
+                Account.main()
+        elif pilihan == 7:
+                print("Anda Akan Kembali Ke Menu Utama!!")
+                menu()
         else:
-            print("Pilihan tidak valid. Silakan coba lagi.")
-            halaman_kategori()
+                print("Pilihan tidak valid. Silakan coba lagi.")
+                halaman_kategori()
     except ValueError:
         print("Masukkan angka untuk memilih opsi.")
         halaman_kategori()

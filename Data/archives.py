@@ -129,6 +129,7 @@ def tampilkan_arsip():
     halaman_arsip()
 
 def halaman_arsip():
+    from Auth.account import Account
     from mainmenu import menu
     print("\n--- Halaman Arsip ---")
     print("1. Tambah data arsip")
@@ -136,7 +137,8 @@ def halaman_arsip():
     print("3. Edit data arsip")
     print("4. Hapus data arsip")
     print("5. Tampilkan data arsip")
-    print("6. Kembali ke Menu Utama")
+    print("6. Kembali ke Menu Login")
+    print("7. Kembali ke Menu Utama")
 
     try:
         pilihan = int(input("Masukkan pilihan: "))
@@ -151,6 +153,16 @@ def halaman_arsip():
         elif pilihan == 5:
             tampilkan_arsip()
         elif pilihan == 6:
+            print("Anda Akan Kembali Ke Menu user/admin!!")
+            role = Account.login()
+            if role == "admin":
+                Account.admin_access()
+            elif role == "user":
+                Account.user_access
+        elif pilihan == 7:
+            print("Anda Akan Kembali Ke Menu Login!!")
+            Account.main()
+        elif pilihan == 8:
             print("Anda Akan Kembali Ke Menu Utama!!")
             menu()
         else:
