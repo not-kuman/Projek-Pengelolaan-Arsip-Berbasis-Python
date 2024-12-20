@@ -1,7 +1,6 @@
 import sqlite3
 from datetime import datetime
 role = None
-
 def buat_tabel():
     try:
         conn = sqlite3.connect('DB_Arsip.db')
@@ -20,6 +19,7 @@ def buat_tabel():
         print(f"Error saat membuat tabel: {e}")
     finally:
         conn.close()
+
 def tambah_surat(nomor_surat, pengirim, isi_surat, tanggal_terima, status):
     try:
         conn = sqlite3.connect('DB_Arsip.db')
@@ -27,6 +27,7 @@ def tambah_surat(nomor_surat, pengirim, isi_surat, tanggal_terima, status):
         cursor.execute('''INSERT INTO surat (nomor_surat, pengirim, isi_surat, tanggal_terima, status)
                           VALUES (?, ?, ?, ?, ?)''', (nomor_surat, pengirim, isi_surat, tanggal_terima, status))
         conn.commit()
+        print("Surat berhasil ditambahkan.")
     except sqlite3.Error as e:
         print(f"Error saat menambahkan surat: {e}")
     finally:
@@ -38,8 +39,11 @@ def lihat_surat():
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM surat')
         surat = cursor.fetchall()
-        for s in surat:
-            print(s)
+        if surat:
+            for s in surat:
+                print(s)
+        else:
+            print("Tidak ada surat yang ditemukan.")
     except sqlite3.Error as e:
         print(f"Error saat melihat surat: {e}")
     finally:
@@ -54,6 +58,7 @@ def edit_surat(surat_id, new_nomor_surat, new_pengirim, new_isi_surat, new_tangg
                           WHERE surat_id = ?''', 
                        (new_nomor_surat, new_pengirim, new_isi_surat, new_tanggal_terima, new_status, surat_id))
         conn.commit()
+        print("Surat berhasil diperbarui.")
     except sqlite3.Error as e:
         print(f"Error saat mengedit surat: {e}")
     finally:
@@ -65,6 +70,7 @@ def hapus_surat(surat_id):
         cursor = conn.cursor()
         cursor.execute('''DELETE FROM surat WHERE surat_id = ?''', (surat_id,))
         conn.commit()
+        print("Surat berhasil dihapus.")
     except sqlite3.Error as e:
         print(f"Error saat menghapus surat: {e}")
     finally:
@@ -73,6 +79,7 @@ def hapus_surat(surat_id):
 def halaman_surat():
     from Auth.account import Account
     from mainmenu import menu
+
     print("\n--- Halaman Surat ---")
     print("1. Tambah surat baru")
     print("2. Lihat semua surat")
@@ -89,6 +96,12 @@ def halaman_surat():
             pengirim = input("Masukkan pengirim surat: ")
             isi_surat = input("Masukkan isi surat: ")
             tanggal_terima = input("Masukkan tanggal terima (YYYY-MM-DD): ")
+            # Periksa format tanggal
+            try:
+                tanggal_terima = datetime.strptime(tanggal_terima, "%Y-%m-%d").date()
+            except ValueError:
+                print("Format tanggal salah. Harap masukkan tanggal dalam format YYYY-MM-DD.")
+                return
             status = input("Masukkan status surat (proses/selesai): ")
             tambah_surat(nomor_surat, pengirim, isi_surat, tanggal_terima, status)
         elif pilihan == 2:
@@ -99,6 +112,11 @@ def halaman_surat():
             new_pengirim = input("Masukkan pengirim baru: ")
             new_isi_surat = input("Masukkan isi surat baru: ")
             new_tanggal_terima = input("Masukkan tanggal terima baru (YYYY-MM-DD): ")
+            try:
+                new_tanggal_terima = datetime.strptime(new_tanggal_terima, "%Y-%m-%d").date()
+            except ValueError:
+                print("Format tanggal salah. Harap masukkan tanggal dalam format YYYY-MM-DD.")
+                return
             new_status = input("Masukkan status surat baru (proses/selesai): ")
             edit_surat(surat_id, new_nomor_surat, new_pengirim, new_isi_surat, new_tanggal_terima, new_status)
         elif pilihan == 4:
@@ -106,7 +124,7 @@ def halaman_surat():
             hapus_surat(surat_id)
         elif pilihan == 5:
             print("Anda Akan Kembali Ke Menu user/admin!!")
-            role = Account
+            role = Account 
             if role == "admin":
                 Account.admin_access()
             elif role == "user":
@@ -123,6 +141,7 @@ def halaman_surat():
     except ValueError:
         print("Masukkan angka untuk memilih. Silakan coba lagi.")
         halaman_surat()
+
 if __name__ == "__main__":
-    buat_tabel() 
+    buat_tabel()
     halaman_surat()
