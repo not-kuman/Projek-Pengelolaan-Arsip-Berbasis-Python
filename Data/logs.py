@@ -17,6 +17,7 @@ def log_action(action, username):
     with open("logs.txt", "a") as log_file:
         log_file.write(log_message)
 
+
 def rotate_logs():
     """
     Rotate the log file if it exceeds the maximum size.
@@ -25,8 +26,10 @@ def rotate_logs():
     max_size = 5 * 1024 * 1024  # 5 MB
     if os.path.exists(log_file) and os.path.getsize(log_file) > max_size:
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        os.rename(log_file, f"logs_{timestamp}.txt")
-        print(f"Log file rotated. Old log saved as logs_{timestamp}.txt.")
+        rotated_file = f"logs_{timestamp}.txt"
+        os.rename(log_file, rotated_file)
+        print(f"Log file rotated. Old log saved as {rotated_file}.")
+
 
 def buat_tabel():
     """
@@ -47,11 +50,13 @@ def buat_tabel():
             )
         ''')
         conn.commit()
+        print("Logs table created or already exists.")
     except sqlite3.Error as e:
         log_action(f"Database Error: {e}", "system")
         print(f"Error creating table: {e}")
     finally:
         conn.close()
+
 
 def log_to_db(user_id, action, archives_id=None):
     """
@@ -62,6 +67,10 @@ def log_to_db(user_id, action, archives_id=None):
         action (str): The action performed ('Create', 'Update', 'Delete').
         archives_id (int, optional): The ID of the archive affected by the action. Default is None.
     """
+    valid_actions = {'Create', 'Update', 'Delete'}
+    if action not in valid_actions:
+        raise ValueError(f"Invalid action '{action}'. Must be one of {valid_actions}.")
+
     try:
         conn = sqlite3.connect('DB_Arsip.db')
         cursor = conn.cursor()
@@ -70,11 +79,13 @@ def log_to_db(user_id, action, archives_id=None):
             VALUES (?, ?, ?)
         ''', (user_id, action, archives_id))
         conn.commit()
+        print(f"Action '{action}' by user {user_id} logged successfully.")
     except sqlite3.Error as e:
-        log_action(f"Database Error: {e}", "system")
+        log_action(f"Database Error: {e} (User {user_id}, Action {action})", "system")
         print(f"Error logging to database: {e}")
     finally:
         conn.close()
+
 
 def lihat_aktivitas_user(user_id):
     """
@@ -89,21 +100,29 @@ def lihat_aktivitas_user(user_id):
         cursor.execute('''
             SELECT logs_id, action, archives_id, timestamp
             FROM logs
-            WHERE user_id = ?''', (user_id,))
+            WHERE user_id = ?
+        ''', (user_id,))
         aktivitas = cursor.fetchall()
         if aktivitas:
+            print(f"Activity logs for User ID {user_id}:")
             for log in aktivitas:
                 print(f"Log_ID: {log[0]}, Action: {log[1]}, Archive ID: {log[2]}, Timestamp: {log[3]}")
         else:
-            print(f"Belum Ada Aktivitas User ID: {user_id}")
+            print(f"No activity found for User ID {user_id}.")
     except sqlite3.Error as e:
         log_action(f"Database Error: {e}", "system")
         print(f"Error retrieving user activity: {e}")
     finally:
         conn.close()
 
+
 if __name__ == "__main__":
     buat_tabel()
+
+    # Example usage
     user_id = 1
-    log_to_db(user_id, "Create", archives_id=123)
-    lihat_aktivitas_user(user_id)
+    try:
+        log_to_db(user_id, "Create", archives_id=123)
+        lihat_aktivitas_user(user_id)
+    except ValueError as ve:
+        print(f"Input Error: {ve}")

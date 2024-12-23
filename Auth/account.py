@@ -1,10 +1,12 @@
 import sqlite3
 import hashlib
+import re  # Untuk validasi email
 
 def create_db_connection():
     return sqlite3.connect('DB_Arsip.db')
+
 def hash_password(password):
-        return hashlib.sha256(password.encode()).hexdigest()
+    return hashlib.sha256(password.encode()).hexdigest()
 
 def create_users_table():
     conn = create_db_connection()
@@ -17,13 +19,13 @@ def create_users_table():
         )''')
     conn.commit()
     conn.close()
-import re  # Untuk validasi email
 
 def validate_email(email):
     """Fungsi untuk memvalidasi format email."""
     if '@' not in email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
         return False
     return True
+
 class Account:
     def login():
         create_users_table()
@@ -40,7 +42,7 @@ class Account:
         cursor.execute("SELECT role FROM users WHERE username = ? AND password = ?", (username, hashed_password))
         user = cursor.fetchone()
         if user:
-            print(f"Selamat Datang {username[0]}.")
+            print(f"Selamat Datang {username}.")
             print(f"Anda adalah {user[0]}.")
             conn.close()
             return user[0]
@@ -81,6 +83,7 @@ class Account:
                 except sqlite3.IntegrityError as e:
                     print("Terjadi kesalahan: ", e)
         conn.close()
+
     def edit_account():
         create_users_table()
         conn = create_db_connection()
@@ -176,6 +179,7 @@ class Account:
         else:
             print("Username tidak ditemukan.")
         conn.close()
+
     def manage_user():
         create_users_table()
         conn = create_db_connection()
@@ -249,12 +253,14 @@ class Account:
                 break
             else:
                 print("Opsi tidak valid. Silakan pilih lagi.")
+
     def user_access():
         from Data.archives import halaman_arsip
         from Data.category import halaman_kategori
         from Data.surat import halaman_surat
+        from Data.logs import log_action
         from mainmenu import menu
-
+        username = "user"
         while True:
             print("\nSelamat Datang di Panel User")
             print("1. Buat Akun Baru")
@@ -265,12 +271,16 @@ class Account:
             choice = input("Pilih opsi (1-7): ")
             if choice == "1":
                 Account.create_account()
+                log_action("Created a new account", username)
             elif choice == "2":
                 halaman_arsip()
+                log_action("Managed archives", username)
             elif choice == "3":
                 halaman_kategori()
+                log_action("Managed categories", username)
             elif choice == "4":
                 halaman_surat()
+                log_action("Managed surat", username)
             elif choice == "5":
                 print("Kembali ke Menu Login...")
                 Account.main()
