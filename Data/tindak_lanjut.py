@@ -1,7 +1,9 @@
 import sqlite3
-role = None
+import datetime
+from Auth.account import Account
+from mainmenu import menu
 
-def tindak_lanjut():
+def create_table():
     conn = sqlite3.connect('DB_Arsip.db')
     cursor = conn.cursor()
     cursor.execute('''
@@ -13,12 +15,18 @@ def tindak_lanjut():
             FOREIGN KEY(surat_id) REFERENCES surat(surat_id)
         )
     ''')
+    conn.commit()
+    conn.close()
+
+def tambah_tindak_lanjut():
+    create_table()
     try:
+        conn = sqlite3.connect('DB_Arsip.db')
+        cursor = conn.cursor()
         tindak_lanjut_id = int(input("Masukkan tindak lanjut ID: "))
         surat_id = int(input("Masukkan surat ID: "))
         tindakan = input("Masukkan tindakan: ")
         tanggal_tindak = input("Masukkan tanggal tindak (format YYYY-MM-DD): ")
-        import datetime
         try:
             datetime.datetime.strptime(tanggal_tindak, '%Y-%m-%d')
         except ValueError:
@@ -32,29 +40,44 @@ def tindak_lanjut():
         print("Data tindak lanjut berhasil disimpan!")
     except sqlite3.Error as e:
         print(f"Terjadi kesalahan pada database: {e}")
-
     except ValueError:
         print("Input tidak valid. Pastikan data sesuai dengan tipe yang diminta.")
-    
     finally:
         conn.close()
+
 def main_menu():
-    from Auth.account import Account
-    from mainmenu import menu
     while True:
         print("\n=== Halaman Utama ===")
         print("1. Login")
-        print("2. Keluar")
-        choice = input("Pilih opsi (1/2): ")
-        if choice == "1":
-            role = Account
+        print("2. Tambah Tindak Lanjut")
+        print("3. Kembali Ke menu user/admin")
+        print("4 Kembali ke Menu Login")
+        print("5 Kembali ke Menu Utama")
+        choice = input("Pilih opsi (1/2/3): ")
+
+        if choice ==1:
+            role = Account.login()
             if role == "admin":
                 Account.admin_access()
             elif role == "user":
                 print("Anda tidak memiliki akses ke halaman admin.")
-        elif choice == "2":
-            print("Keluar dari menu. Kembali Ke Menu Awal!")
+            else:
+                print("Login gagal. Silakan coba lagi.")
+        elif choice == 2:
+            tambah_tindak_lanjut()
+        elif choice == 3:
+            print(" Anda Kan Menuju Ke Menu Admin")
+            Account.admin_access
+            break
+        elif choice == 4:
+            print("Anda Akan Kembali Ke Menu Login")
+            menu()
+            break
+        elif choice == 5:
+            print("Keluar dari menu. Kembali ke Menu Awal!")
             menu()
             break
         else:
             print("Pilihan tidak valid. Silakan coba lagi.")
+if __name__ == "__main__":
+    main_menu()

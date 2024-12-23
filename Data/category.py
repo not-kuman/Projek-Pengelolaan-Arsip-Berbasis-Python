@@ -90,64 +90,96 @@ def hapus_kategori(categories_id):
 
 def halaman_kategori():
     buat_tabel_kategori()
-    from Auth.account import Account
-    from mainmenu import menu
-    print("\n--- Halaman Kategori ---")
-    print("1. Tambah Kategori")
-    print("2. Lihat Kategori")
-    print("3. Edit Kategori")
-    print("4. Hapus Kategori")
-    print("5. Kembali ke Menu user/admin")
-    print("6. Kembali ke Menu Login")
-    print("7. Kembali ke Menu Utama")
-
-    try:
-        pilihan = int(input("Masukkan pilihan: "))
-        if pilihan == 1:
-            categories_name = input("Masukkan nama kategori: ").strip()
-            description = input("Masukkan deskripsi kategori: ").strip()
-            if not categories_name or not description:
-                print("Nama dan deskripsi kategori tidak boleh kosong!")
-            else:
-                tambah_kategori(categories_name, description)
-        elif pilihan == 2:
-            lihat_kategori()
-        elif pilihan == 3:
-            try:
-                categories_id = int(input("Masukkan ID kategori yang ingin diedit: "))
-                new_name = input("Masukkan nama baru kategori: ").strip()
-                new_description = input("Masukkan deskripsi baru kategori: ").strip()
-                if not new_name or not new_description:
-                    print("Nama dan deskripsi baru tidak boleh kosong!")
+    role = Account
+    if role == "admin":
+        from Auth.account import Account
+        from mainmenu import menu
+        print("\n--- Halaman Kategori ---")
+        print("1. Tambah Kategori")
+        print("2. Lihat Kategori")
+        print("3. Edit Kategori")
+        print("4. Hapus Kategori")
+        print("5. Kembali ke Menu user/admin")
+        print("6. Kembali ke Menu Login")
+        print("7. Kembali ke Menu Utama")
+        try:
+            pilihan = int(input("Masukkan pilihan: "))
+            if pilihan == 1:
+                categories_name = input("Masukkan nama kategori: ").strip()
+                description = input("Masukkan deskripsi kategori: ").strip()
+                if not categories_name or not description:
+                    print("Nama dan deskripsi kategori tidak boleh kosong!")
                 else:
-                    edit_kategori(categories_id, new_name, new_description)
-            except ValueError:
-                print("ID kategori harus berupa angka.")
-        elif pilihan == 4:
-            try:
-                categories_id = int(input("Masukkan ID kategori yang ingin dihapus: "))
-                hapus_kategori(categories_id)
-            except ValueError:
-                print("ID kategori harus berupa angka.")
-        elif pilihan == 5:
-                print("Anda Akan Kembali Ke Menu user/admin!!")
-                role = Account
-                if role == "admin":
+                    tambah_kategori(categories_name, description)
+            elif pilihan == 2:
+                lihat_kategori()
+            elif pilihan == 3:
+                try:
+                    categories_id = int(input("Masukkan ID kategori yang ingin diedit: "))
+                    new_name = input("Masukkan nama baru kategori: ").strip()
+                    new_description = input("Masukkan deskripsi baru kategori: ").strip()
+                    if not new_name or not new_description:
+                        print("Nama dan deskripsi baru tidak boleh kosong!")
+                    else:
+                        edit_kategori(categories_id, new_name, new_description)
+                except ValueError:
+                    print("ID kategori harus berupa angka.")
+            elif pilihan == 4:
+                try:
+                    categories_id = int(input("Masukkan ID kategori yang ingin dihapus: "))
+                    hapus_kategori(categories_id)
+                except ValueError:
+                    print("ID kategori harus berupa angka.")
+            elif pilihan == 5:
+                    print("Anda Akan Kembali Ke Menu Admin!!")
                     Account.admin_access()
-                elif role == "user":
+            elif pilihan == 6:
+                    print("Anda Akan Kembali Ke Menu Login!!")
+                    Account.main()
+            elif pilihan == 7:
+                    print("Anda Akan Kembali Ke Menu Utama!!")
+                    menu()
+            else:
+                    print("Pilihan tidak valid. Silakan coba lagi.")
+                    halaman_kategori()
+        except ValueError:
+            print("Masukkan angka untuk memilih opsi.")
+            halaman_kategori()
+    elif role == "user":
+        from Auth.account import Account
+        from mainmenu import menu
+        print("\n--- Halaman Kategori ---")
+        print("1. Tambah Kategori")
+        print("2. Lihat Kategori")
+        print("3. Kembali ke Menu user/admin")
+        print("4. Kembali ke Menu Login")
+        print("5. Kembali ke Menu Utama")
+        try:
+            pilihan = int(input("Masukkan pilihan: "))
+            if pilihan == 1:
+                categories_name = input("Masukkan nama kategori: ").strip()
+                description = input("Masukkan deskripsi kategori: ").strip()
+                if not categories_name or not description:
+                    print("Nama dan deskripsi kategori tidak boleh kosong!")
+                else:
+                    tambah_kategori(categories_name, description)
+            elif pilihan == 2:
+                lihat_kategori()
+            elif pilihan == 3:
+                    print("Anda Akan Kembali Ke Menu User!!")
                     Account.user_access
-        elif pilihan == 6:
-                print("Anda Akan Kembali Ke Menu Login!!")
-                Account.main()
-        elif pilihan == 7:
-                print("Anda Akan Kembali Ke Menu Utama!!")
-                menu()
-        else:
-                print("Pilihan tidak valid. Silakan coba lagi.")
-                halaman_kategori()
-    except ValueError:
-        print("Masukkan angka untuk memilih opsi.")
-        halaman_kategori()
+            elif pilihan == 4:
+                    print("Anda Akan Kembali Ke Menu Login!!")
+                    Account.main()
+            elif pilihan == 5:
+                    print("Anda Akan Kembali Ke Menu Utama!!")
+                    menu()
+            else:
+                    print("Pilihan tidak valid. Silakan coba lagi.")
+                    halaman_kategori()
+        except ValueError:
+            print("Masukkan angka untuk memilih opsi.")
+            halaman_kategori()
 
 if __name__ == "__main__":
     halaman_kategori()

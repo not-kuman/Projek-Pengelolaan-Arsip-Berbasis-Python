@@ -261,9 +261,7 @@ class Account:
             print("2. Kelola Arsip")
             print("3. Kelola Kategori")
             print("4. Kelola Surat")
-            print("5. FAQ")
-            print("6. Customer Service")
-            print("7. Kembali ke Menu Utama")
+            print("5. Kembali ke Menu Utama")
             choice = input("Pilih opsi (1-7): ")
             if choice == "1":
                 Account.create_account()
@@ -274,22 +272,6 @@ class Account:
             elif choice == "4":
                 halaman_surat()
             elif choice == "5":
-                print("\nFAQ - Pertanyaan yang Sering Diajukan")
-                print("1. Bagaimana cara mengelola arsip?")
-                print("   - Pilih opsi 'Kelola Arsip' dari menu utama.")
-                print("2. Bagaimana cara mengubah kategori?")
-                print("   - Pilih opsi 'Kelola Kategori' dan sesuaikan sesuai kebutuhan.")
-                print("3. Bagaimana cara mengelola surat?")
-                print("   - Gunakan opsi 'Kelola Surat' untuk menambah atau menghapus surat.")
-                Account.user_access()
-            elif choice == "6":
-                print("\nCustomer Service")
-                print("Untuk bantuan lebih lanjut, silakan hubungi:")
-                print("- Email: example@arsipapp.com")
-                print("- Telepon: 111-111-111-111")
-                print("- Jam Operasional: Senin - Jumat, 08.00 - 17.00")
-                Account.user_access()
-            elif choice == "7":
                 print("Kembali ke Menu Login...")
                 Account.main()
                 break
