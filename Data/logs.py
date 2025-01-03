@@ -1,128 +1,81 @@
-import datetime
-import os
 import sqlite3
+import re
+import datetime
+
+def create_db_connection():
+    return sqlite3.connect('DB_Arsip.db')
+
+def create_users_table():
+    conn = create_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS account (
+        account_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL CHECK(role IN ('admin', 'user'))
+    )''')
+    conn.commit()
+    conn.close()
 
 
-def log_action(action, username):
+def create_logs_table():
+    """Create the logs table if it doesn't exist."""
+    conn = create_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS logs (
+            logs_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER,
+            archives_id INTEGER,
+            letter_id INTEGER,
+            action TEXT CHECK(action IN ('Create', 'Update', 'Delete', 'View')),
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (account_id) REFERENCES account(account_id)
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def log_action(account_id, action, archives_id=None, letter_id=None):
     """
-    Log an action performed by a user to a log file.
-
-    Args:
-        action (str): The action performed.
-        username (str): The username of the performer.
+    Log an action to the database.
     """
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    log_message = f"[{timestamp}] Action: {action}, Performed by: {username}\n"
-    rotate_logs()
-    with open("logs.txt", "a") as log_file:
-        log_file.write(log_message)
-
-
-def rotate_logs():
-    """
-    Rotate the log file if it exceeds the maximum size.
-    """
-    log_file = "logs.txt"
-    max_size = 5 * 1024 * 1024  # 5 MB
-    if os.path.exists(log_file) and os.path.getsize(log_file) > max_size:
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        rotated_file = f"logs_{timestamp}.txt"
-        os.rename(log_file, rotated_file)
-        print(f"Log file rotated. Old log saved as {rotated_file}.")
-
-
-def buat_tabel():
-    """
-    Create the logs table in the SQLite database if it doesn't already exist.
-    """
-    try:
-        conn = sqlite3.connect('DB_Arsip.db')
-        cursor = conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS logs (
-                logs_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                action TEXT CHECK(action IN ('Create', 'Update', 'Delete')),
-                archives_id INTEGER,
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(user_id),
-                FOREIGN KEY (archives_id) REFERENCES archives(archives_id)
-            )
-        ''')
-        conn.commit()
-        print("Logs table created or already exists.")
-    except sqlite3.Error as e:
-        log_action(f"Database Error: {e}", "system")
-        print(f"Error creating table: {e}")
-    finally:
-        conn.close()
-
-
-def log_to_db(user_id, action, archives_id=None):
-    """
-    Log an action to the SQLite database.
-
-    Args:
-        user_id (int): The ID of the user performing the action.
-        action (str): The action performed ('Create', 'Update', 'Delete').
-        archives_id (int, optional): The ID of the archive affected by the action. Default is None.
-    """
-    valid_actions = {'Create', 'Update', 'Delete'}
+    valid_actions = {'Create', 'Update', 'Delete', 'View'}
     if action not in valid_actions:
-        raise ValueError(f"Invalid action '{action}'. Must be one of {valid_actions}.")
+        raise ValueError(f"Invalid action. Must be one of {valid_actions}")
 
     try:
-        conn = sqlite3.connect('DB_Arsip.db')
+        conn = create_db_connection()
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO logs (user_id, action, archives_id)
-            VALUES (?, ?, ?)
-        ''', (user_id, action, archives_id))
+            INSERT INTO logs (account_id, action, archives_id, letter_id)
+            VALUES (?, ?, ?, ?)
+        ''', (account_id, action, archives_id, letter_id))
         conn.commit()
-        print(f"Action '{action}' by user {user_id} logged successfully.")
     except sqlite3.Error as e:
-        log_action(f"Database Error: {e} (User {user_id}, Action {action})", "system")
-        print(f"Error logging to database: {e}")
+        print(f"Database error: {e}")
     finally:
         conn.close()
 
-
-def lihat_aktivitas_user(user_id):
+def get_account_activity(account_id):
     """
-    Retrieve and display the activity logs of a specific user.
-
-    Args:
-        user_id (int): The ID of the user whose logs are to be retrieved.
+    Retrieve activity logs for a specific account.
     """
-    try:
-        conn = sqlite3.connect('DB_Arsip.db')
-        cursor = conn.cursor()
-        cursor.execute('''
-            SELECT logs_id, action, archives_id, timestamp
-            FROM logs
-            WHERE user_id = ?
-        ''', (user_id,))
-        aktivitas = cursor.fetchall()
-        if aktivitas:
-            print(f"Activity logs for User ID {user_id}:")
-            for log in aktivitas:
-                print(f"Log_ID: {log[0]}, Action: {log[1]}, Archive ID: {log[2]}, Timestamp: {log[3]}")
-        else:
-            print(f"No activity found for User ID {user_id}.")
-    except sqlite3.Error as e:
-        log_action(f"Database Error: {e}", "system")
-        print(f"Error retrieving user activity: {e}")
-    finally:
-        conn.close()
-
-
-if __name__ == "__main__":
-    buat_tabel()
-
-    # Example usage
-    user_id = 1
-    try:
-        log_to_db(user_id, "Create", archives_id=123)
-        lihat_aktivitas_user(user_id)
-    except ValueError as ve:
-        print(f"Input Error: {ve}")
+    conn = create_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT logs_id, action, archives_id, letter_id, timestamp
+        FROM logs
+        WHERE account_id = ?
+        ORDER BY timestamp DESC
+    ''', (account_id,))
+    activities = cursor.fetchall()
+    conn.close()
+    
+    if activities:
+        for log in activities:
+            print(f"Log ID: {log[0]}, Action: {log[1]}, Archives ID: {log[2]}, "
+                  f"Letter ID: {log[3]}, Time: {log[4]}")
+    else:
+        print(f"No activity found for Account ID {account_id}")
