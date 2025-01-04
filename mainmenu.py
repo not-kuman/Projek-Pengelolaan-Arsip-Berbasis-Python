@@ -1,6 +1,5 @@
 def menu():
     try:
-        from Auth.account import Account
         while True:
             print("\nMenu Utama:")
             print("1. Mulai")
@@ -8,6 +7,7 @@ def menu():
             choice = input("Pilih opsi (1, 2): ")
             
             if choice == "1":
+                from Auth.account import Account  # Import inside the function to avoid circular import
                 Account.main()
             elif choice == "2":
                 print("Terima kasih telah menggunakan aplikasi.")
@@ -18,5 +18,6 @@ def menu():
         print("File 'Auth/account.py' tidak ditemukan. Pastikan file tersebut ada di direktori yang benar.")
     except Exception as e:
         print(f"Terjadi kesalahan: {e}")
+
 if __name__ == "__main__":
     menu()

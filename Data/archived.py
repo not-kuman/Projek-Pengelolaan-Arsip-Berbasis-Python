@@ -1,6 +1,7 @@
 import sqlite3
 from datetime import datetime
 from Auth.account import Account
+from mainmenu import menu
 
 DATABASE_NAME = 'DB_Arsip.db'
 account = Account()
@@ -95,8 +96,7 @@ def hapus_arsip(archives_id):
 def halaman_arsip():
     """Menampilkan halaman arsip dengan mengecek role dari tabel account."""
     buat_tabel_arsip()
-    from Auth.account import Account
-    from mainmenu import menu
+   
     global role
     if role is None:
         print("Silakan login terlebih dahulu")
