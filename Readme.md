@@ -1,4 +1,5 @@
-# 📚 Projek UAS Kelompok 6 - Algoritma & Pemrograman I
+# 📚 Projek UAS Kelompok 6 
+ Algoritma & Pemrograman I
 
 ---
 
