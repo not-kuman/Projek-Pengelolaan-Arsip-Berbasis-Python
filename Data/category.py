@@ -1,14 +1,25 @@
 import sqlite3
 from datetime import datetime
 from Auth.account import Account
+from mainmenu import menu
 
 DATABASE_NAME = 'DB_Arsip.db'
 
-
 class KategoriManager:
     def __init__(self):
+        self.conn = sqlite3.connect(DATABASE_NAME)
+        self.cursor = self.conn.cursor()
+        self.buat_tabel_kategori()  # Membuat tabel saat inisialisasi
         self.account = Account()
+        self.role = None
+
+    def initialize_system(self):
+        """Menginisialisasi sistem dengan login"""
         self.role = self.account.login()
+        if self.role:
+            self.halaman_kategori()
+        else:
+            print("Login gagal. Silakan coba lagi.")
 
     def create_db_connection(self):
         """Helper function to create and return a database connection."""
@@ -29,86 +40,102 @@ class KategoriManager:
 
     def buat_tabel_kategori(self):
         """Membuat tabel categories jika belum ada."""
-        conn = self.create_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('''CREATE TABLE IF NOT EXISTS categories (
-                       categories_id INTEGER PRIMARY KEY,
-                       categories_name VARCHAR(100) UNIQUE,
-                       categories_code VARCHAR(100) UNIQUE,
-                       description TEXT,
-                       created_at TIMESTAMP,
-                       update_at TIMESTAMP)''')
-        conn.commit()
-        conn.close()
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS categories (
+                               categories_id INTEGER PRIMARY KEY,
+                               categories_name VARCHAR(100) UNIQUE,
+                               categories_code VARCHAR(100) UNIQUE,
+                               description TEXT,
+                               created_at TIMESTAMP,
+                               update_at TIMESTAMP)''')
+        self.conn.commit()
 
     def tambah_kategori(self, categories_name, categories_code, description):
         """Menambahkan kategori baru ke tabel categories."""
-        conn = self.create_db_connection()
-        cursor = conn.cursor()
         created_at = update_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         try:
-            cursor.execute('''INSERT INTO categories (categories_name, categories_code, description, created_at, update_at)
-                              VALUES (?, ?, ?, ?, ?)''', 
-                              (categories_name, categories_code, description, created_at, update_at))
-            conn.commit()
+            self.cursor.execute('''INSERT INTO categories (categories_name, categories_code, description, created_at, update_at)
+                                   VALUES (?, ?, ?, ?, ?)''', 
+                                   (categories_name, categories_code, description, created_at, update_at))
+            self.conn.commit()
             print("Kategori berhasil ditambahkan.")
         except sqlite3.IntegrityError:
             print(f"Kategori dengan nama '{categories_name}' atau kode '{categories_code}' sudah ada.")
-        finally:
-            conn.close()
 
     def lihat_kategori(self):
         """Melihat semua kategori yang ada di tabel categories."""
-        conn = self.create_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM categories')
-        rows = cursor.fetchall()
+        self.cursor.execute('SELECT * FROM categories')
+        rows = self.cursor.fetchall()
         if rows:
             print("\nDaftar Kategori:")
             for row in rows:
                 print(f"ID: {row[0]}, Nama: {row[1]}, Kode: {row[2]}, Deskripsi: {row[3]}, Dibuat: {row[4]}, Diperbarui: {row[5]}")
         else:
             print("Tidak ada kategori yang ditemukan.")
-        conn.close()
 
     def edit_kategori(self, categories_id, new_name, new_code, new_description):
         """Mengedit kategori berdasarkan ID."""
-        conn = self.create_db_connection()
-        cursor = conn.cursor()
         update_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         try:
-            cursor.execute('''UPDATE categories 
-                              SET categories_name = ?, categories_code = ?, description = ?, update_at = ?
-                              WHERE categories_id = ?''', 
-                              (new_name, new_code, new_description, update_at, categories_id))
-            if cursor.rowcount > 0:
+            self.cursor.execute('''UPDATE categories 
+                                   SET categories_name = ?, categories_code = ?, description = ?, update_at = ?
+                                   WHERE categories_id = ?''', 
+                                   (new_name, new_code, new_description, update_at, categories_id))
+            if self.cursor.rowcount > 0:
                 print(f"Kategori dengan ID {categories_id} berhasil diperbarui.")
             else:
                 print(f"Kategori dengan ID {categories_id} tidak ditemukan.")
         except sqlite3.IntegrityError:
             print("Nama atau kode kategori sudah digunakan.")
         finally:
-            conn.commit()
-            conn.close()
+            self.conn.commit()
 
     def hapus_kategori(self, categories_id):
         """Menghapus kategori berdasarkan ID."""
-        conn = self.create_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('DELETE FROM categories WHERE categories_id = ?', (categories_id,))
-        if cursor.rowcount > 0:
+        self.cursor.execute('DELETE FROM categories WHERE categories_id = ?', (categories_id,))
+        if self.cursor.rowcount > 0:
             print(f"Kategori dengan ID {categories_id} berhasil dihapus.")
         else:
             print(f"Kategori dengan ID {categories_id} tidak ditemukan.")
-        conn.commit()
-        conn.close()
+        self.conn.commit()
+
+    def handle_tambah_kategori(self):
+        """Handle penambahan kategori dengan validasi input"""
+        categories_name = input("Masukkan nama kategori: ").strip()
+        categories_code = input("Masukkan kode kategori: ").strip()
+        description = input("Masukkan deskripsi kategori: ").strip()
+        if not categories_name or not categories_code or not description:
+            print("Nama, kode, dan deskripsi kategori tidak boleh kosong!")
+        else:
+            self.tambah_kategori(categories_name, categories_code, description)
+
+    def handle_edit_kategori(self):
+        """Handle edit kategori dengan validasi input"""
+        try:
+            categories_id = int(input("Masukkan ID kategori yang ingin diedit: "))
+            new_name = input("Masukkan nama baru kategori: ").strip()
+            new_code = input("Masukkan kode baru kategori: ").strip()
+            new_description = input("Masukkan deskripsi baru kategori: ").strip()
+            if not new_name or not new_code or not new_description:
+                print("Nama, kode, dan deskripsi baru tidak boleh kosong!")
+            else:
+                self.edit_kategori(categories_id, new_name, new_code, new_description)
+        except ValueError:
+            print("ID kategori harus berupa angka.")
+
+    def handle_hapus_kategori(self):
+        """Handle hapus kategori dengan validasi input"""
+        try:
+            categories_id = int(input("Masukkan ID kategori yang ingin dihapus: "))
+            self.hapus_kategori(categories_id)
+        except ValueError:
+            print("ID kategori harus berupa angka.")
 
     def halaman_kategori(self):
         """Menampilkan halaman kategori dengan mengecek role dari tabel account."""
-        self.buat_tabel_kategori()
         if self.role is None:
             print("Silakan login terlebih dahulu")
             return
+
         while True:
             print("\n--- Halaman Kategori ---")
             print("1. Tambah Kategori")
@@ -118,64 +145,44 @@ class KategoriManager:
             print("5. Kembali ke Menu user/admin")
             print("6. Kembali ke Menu Login")
             print("7. Kembali ke Menu Utama")
+            
             try:
                 pilihan = int(input("Masukkan pilihan: "))
+
                 if pilihan == 1:
-                    categories_name = input("Masukkan nama kategori: ").strip()
-                    categories_code = input("Masukkan kode kategori: ").strip()
-                    description = input("Masukkan deskripsi kategori: ").strip()
-                    if not categories_name or not categories_code or not description:
-                        print("Nama, kode, dan deskripsi kategori tidak boleh kosong!")
-                    else:
-                        self.tambah_kategori(categories_name, categories_code, description)
+                    self.handle_tambah_kategori()
                 elif pilihan == 2:
                     self.lihat_kategori()
                 elif pilihan == 3:
                     if self.role == 'admin':
-                        try:
-                            categories_id = int(input("Masukkan ID kategori yang ingin diedit: "))
-                            new_name = input("Masukkan nama baru kategori: ").strip()
-                            new_code = input("Masukkan kode baru kategori: ").strip()
-                            new_description = input("Masukkan deskripsi baru kategori: ").strip()
-                            if not new_name or not new_code or not new_description:
-                                print("Nama, kode, dan deskripsi baru tidak boleh kosong!")
-                            else:
-                                self.edit_kategori(categories_id, new_name, new_code, new_description)
-                        except ValueError:
-                            print("ID kategori harus berupa angka.")
+                        self.handle_edit_kategori()
                     else:
                         print("Maaf, hanya admin yang dapat mengedit kategori.")
                 elif pilihan == 4:
                     if self.role == 'admin':
-                        try:
-                            categories_id = int(input("Masukkan ID kategori yang ingin dihapus: "))
-                            self.hapus_kategori(categories_id)
-                        except ValueError:
-                            print("ID kategori harus berupa angka.")
+                        self.handle_hapus_kategori()
                     else:
                         print("Maaf, hanya admin yang dapat menghapus kategori.")
                 elif pilihan == 5:
-                    print("Anda Akan Kembali Ke Menu user/admin!!")
+                    print("Anda Akan Kembali Ke Menu user/admin!")
                     if self.role == "admin":
                         self.account.admin_access()
                     else:
                         self.account.user_access()
-                    return
+                    break
                 elif pilihan == 6:
-                    print("Anda Akan Kembali Ke Menu Login!!")
+                    print("Anda Akan Kembali Ke Menu Login!")
                     self.account.main()
-                    return
+                    break
                 elif pilihan == 7:
-                    print("Anda Akan Kembali Ke Menu Utama!!")
-                    from mainmenu import menu
+                    print("Anda Akan Kembali Ke Menu Utama!")
                     menu()
-                    return
+                    break
                 else:
                     print("Pilihan tidak valid. Silakan coba lagi.")
             except ValueError:
                 print("Masukkan angka untuk memilih opsi.")
 
-
 if __name__ == "__main__":
     kategori_manager = KategoriManager()
-    kategori_manager.halaman_kategori()
+    kategori_manager.initialize_system()

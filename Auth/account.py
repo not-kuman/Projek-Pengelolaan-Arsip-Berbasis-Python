@@ -100,12 +100,11 @@ class Account:
     
     def admin_access(self):
         while True:
-            from Data.archived import halaman_arsip
-            from Data.category import halaman_kategori
-            from Data.logs import log_action
-            from Data.logs import add_log_to_file
-            from Data.surat import letter_page
-            from Data.tindak_lanjut import letter_followup
+            from Data.archived import ArsipManager
+            from Data.category import KategoriManager
+            from Data.logs import ArchiveManager
+            from Data.surat import LetterManager
+            from Data.tindak_lanjut import LetterFollowUpManager
             try:
                 print("\nSelamat Datang di Panel Admin")
                 print("1. Buat Akun Baru")
@@ -119,7 +118,7 @@ class Account:
                 print("9. Lihat Logs")
                 print("10. Kembali ke Menu Utama")
                 
-                pilihan = int(input("Masukkan pilihan: "))  # Fixed input handling
+                pilihan = int(input("Masukkan pilihan: ")) 
                 
                 if pilihan == 1:
                     self.create_account()
@@ -134,23 +133,23 @@ class Account:
                     self.manage_user()
                     self.log_action("Update")
                 elif pilihan == 5:
-                    halaman_arsip()
+                    ArsipManager.halaman_arsip(self)
                     self.log_action("Update")
                     break
                 elif pilihan == 6:
-                    halaman_kategori()
+                    KategoriManager.halaman_kategori(self)
                     self.log_action("Update")
                     break
                 elif pilihan == 7:
-                    letter_page()
+                    LetterManager.letter_page(self)
                     self.log_action("Update")
                     break
                 elif pilihan == 8:
-                    letter_followup()
+                    LetterFollowUpManager.letter_followup(self)
                     self.log_action("Update")
                     break
                 elif pilihan == 9:
-                    add_log_to_file()
+                    ArchiveManager(self)
                     self.log_action("View")
                 elif pilihan == 10:
                     print("Kembali ke Menu Utama...")

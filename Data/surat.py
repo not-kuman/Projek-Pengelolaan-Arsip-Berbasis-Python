@@ -3,15 +3,19 @@ from datetime import datetime
 from Auth.account import Account
 from mainmenu import menu
 
+DATABASE_NAME = 'DB_Arsip.db'
+
 class LetterManager:
     def __init__(self):
+        self.conn = sqlite3.connect(DATABASE_NAME)
+        self.cursor = self.conn.cursor()
         self.account = Account()
         self.role = self.account.login()
         self.account_id = self.account.login()
 
     def create_db_connection(self):
         """Helper function to create and return a database connection."""
-        return sqlite3.connect('DB_Arsip.db')
+        return sqlite3.connect(DATABASE_NAME)
 
     def create_letter_table(self):
         """Membuat tabel surat jika belum ada."""

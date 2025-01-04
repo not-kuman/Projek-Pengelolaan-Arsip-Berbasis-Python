@@ -3,14 +3,14 @@ import datetime
 
 DATABASE_NAME = 'DB_Arsip.db'
 
-
 class ArchiveManager:
     def __init__(self):
-        self.database_name = DATABASE_NAME
+        self.conn = sqlite3.connect(DATABASE_NAME)
+        self.cursor = self.conn.cursor()
 
     def create_db_connection(self):
         """Create a connection to the SQLite database."""
-        return sqlite3.connect(self.database_name)
+        return sqlite3.connect(DATABASE_NAME)
 
     def create_users_table(self):
         """Create the account table if it doesn't exist."""
@@ -120,9 +120,7 @@ class ArchiveManager:
         except FileNotFoundError:
             print("\nLog file not found.")
 
-
-# Contoh penggunaan
 if __name__ == "__main__":
-    manager = ArchiveManager()
-    manager.create_users_table()
-    manager.create_logs_table()
+    archive_manager = ArchiveManager()
+    archive_manager.create_users_table()
+    archive_manager.create_logs_table()

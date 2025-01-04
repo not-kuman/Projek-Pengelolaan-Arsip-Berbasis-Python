@@ -11,12 +11,14 @@ class LetterFollowUpManager:
         self.account = Account()
         self.role = self.account.login()
 
+    def create_db_connection(self):
+        """Helper function to create and return a database connection."""
+        return sqlite3.connect(DATABASE_NAME)
+
     def create_table(self):
-        """
-        Membuat tabel 'letter_followup' jika belum ada.
-        """
+        """Membuat tabel 'letter_followup' jika belum ada."""
         try:
-            conn = sqlite3.connect(DATABASE_NAME)
+            conn = self.create_db_connection()
             cursor = conn.cursor()
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS letter_followup (
@@ -38,12 +40,10 @@ class LetterFollowUpManager:
             conn.close()
 
     def add_letter_followup(self):
-        """
-        Menambahkan data tindak lanjut ke tabel 'letter_followup'.
-        """
+        """Menambahkan data tindak lanjut ke tabel 'letter_followup'."""
         self.create_table()
         try:
-            conn = sqlite3.connect(DATABASE_NAME)
+            conn = self.create_db_connection()
             cursor = conn.cursor()
             print("\n=== Tambah Tindak Lanjut ===")
             follow_up_id = int(input("Masukkan ID tindak lanjut: "))
@@ -76,11 +76,9 @@ class LetterFollowUpManager:
             conn.close()
 
     def show_letter_followup(self):
-        """
-        Menampilkan semua data tindak lanjut di tabel 'letter_followup'.
-        """
+        """Menampilkan semua data tindak lanjut di tabel 'letter_followup'."""
         try:
-            conn = sqlite3.connect(DATABASE_NAME)
+            conn = self.create_db_connection()
             cursor = conn.cursor()
             print("\n=== Data Tindak Lanjut ===")
             cursor.execute('SELECT * FROM letter_followup')
@@ -96,9 +94,7 @@ class LetterFollowUpManager:
             conn.close()
 
     def letter_followup(self):
-        """
-        Menu utama untuk pengelolaan tindak lanjut.
-        """
+        """Menu utama untuk pengelolaan tindak lanjut."""
         if self.role is None:
             print("Silakan login terlebih dahulu")
             return
