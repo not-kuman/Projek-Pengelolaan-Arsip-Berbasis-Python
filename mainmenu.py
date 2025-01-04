@@ -7,7 +7,7 @@ def menu():
             choice = input("Pilih opsi (1, 2): ")
             
             if choice == "1":
-                from Auth.account import Account  # Import inside the function to avoid circular import
+                from Auth.account import Account
                 Account.main()
             elif choice == "2":
                 print("Terima kasih telah menggunakan aplikasi.")
