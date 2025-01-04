@@ -4,12 +4,12 @@ def menu():
             print("\nMenu Utama:")
             print("1. Mulai")
             print("2. Keluar")
-            choice = input("Pilih opsi (1, 2): ")
+            choice = int(input("Pilih opsi (1, 2): "))
             
-            if choice == "1":
+            if choice == 1:
                 from Auth.account import Account
                 Account.main()
-            elif choice == "2":
+            elif choice == 2:
                 print("Terima kasih telah menggunakan aplikasi.")
                 break
             else:
