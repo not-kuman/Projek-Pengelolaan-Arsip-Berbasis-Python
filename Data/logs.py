@@ -44,7 +44,6 @@ def create_logs_table():
 def log_action(action, username):
     """
     Log an action performed by a user into the database.
-
     Args:
         action (str): The action performed (e.g., 'Create', 'View', 'Update', 'Delete').
         username (str): The username of the account performing the action.
@@ -52,14 +51,10 @@ def log_action(action, username):
     valid_actions = {'Create', 'View', 'Update', 'Delete'}
     if action not in valid_actions:
         raise ValueError(f"Invalid action. Must be one of {valid_actions}")
-
     conn = create_db_connection()
     cursor = conn.cursor()
-
-    # Get the account_id based on the username
     cursor.execute('SELECT account_id FROM account WHERE username = ?', (username,))
     result = cursor.fetchone()
-
     if result:
         account_id = result[0]
         cursor.execute('''
@@ -70,7 +65,6 @@ def log_action(action, username):
         print(f"Action '{action}' logged for user '{username}'.")
     else:
         print(f"User '{username}' not found. Action '{action}' not logged.")
-
     conn.close()
 
 def get_account_activity():
@@ -79,7 +73,6 @@ def get_account_activity():
     """
     conn = create_db_connection()
     cursor = conn.cursor()
-
     cursor.execute('''
         SELECT logs.logs_id, account.username, logs.action, logs.timestamp
         FROM logs
@@ -87,7 +80,6 @@ def get_account_activity():
         ORDER BY logs.timestamp DESC
     ''')
     logs = cursor.fetchall()
-
     if logs:
         print("\n=== Account Activity Logs ===")
         for log in logs:
@@ -95,13 +87,11 @@ def get_account_activity():
             print(f"[{timestamp}] User: {username}, Action: {action} (Log ID: {log_id})")
     else:
         print("\nNo activity logs available.")
-
     conn.close()
 
 def add_log_to_file(message):
     """
     Write a log message to a text file with a timestamp.
-
     Args:
         message (str): The log message to be written.
     """

@@ -1,11 +1,11 @@
 import sqlite3
 from datetime import datetime
 from Auth.account import Account
-from menu import menu
+from mainmenu import menu
 
 account = Account()
 role = account.login()
-account_id = account.login()  # Pastikan ada metode untuk mendapatkan account_id pengguna yang login
+account_id = account.login()
 
 
 def create_db_connection():
@@ -115,7 +115,6 @@ def letter_page():
     if role is None:
         print("Silakan login terlebih dahulu.")
         return
-
     while True:
         print("\n=== Pengelolaan Surat ===")
         print("1. Tambah Surat")
@@ -126,9 +125,8 @@ def letter_page():
         print("5. Kembali ke Menu user/admin")
         print("6. Kembali ke Menu Login")
         print("7. Kembali ke Menu Utama")
-
-        choice = input("Masukkan pilihan: ")
-        if choice == "1":
+        pilihan = input(int("Masukkan pilihan: "))
+        if pilihan == 1:
             letter_content = input("Masukkan konten surat: ")
             sender = input("Masukkan pengirim: ")
             content = input("Masukkan isi surat: ")
@@ -143,11 +141,9 @@ def letter_page():
                 print("Status tidak valid.")
                 continue
             add_letter(letter_content, sender, content, date_received, status)
-
-        elif choice == "2":
+        elif pilihan == 2:
             view_letters()
-
-        elif role == "admin" and choice == "3":
+        elif role == "admin" and pilihan == 3:
             try:
                 letter_id = int(input("Masukkan ID surat yang ingin diedit: "))
                 letter_content = input("Masukkan konten baru surat: ")
@@ -166,35 +162,28 @@ def letter_page():
                 edit_letter(letter_id, letter_content, sender, content, date_received, status)
             except ValueError:
                 print("ID surat harus berupa angka.")
-
-        elif role == "admin" and choice == "4":
+        elif role == "admin" and pilihan == 4:
             try:
                 letter_id = int(input("Masukkan ID surat yang ingin dihapus: "))
                 delete_letter(letter_id)
             except ValueError:
                 print("ID surat harus berupa angka.")
-
-        elif choice == "5":
+        elif pilihan == 5:
                 print("Anda Akan Kembali Ke Menu user/admin!!")
                 if role == "admin":
                     Account.admin_access()
                 else:
                     Account.user_access()
                 return
-
-        elif choice == "6":
+        elif pilihan == 6:
                 print("Anda Akan Kembali Ke Menu Login!!")
                 Account.main()
                 return
-
-        elif choice == "7":
+        elif pilihan == 7:
                 print("Anda Akan Kembali Ke Menu Utama!!")
                 menu()
                 return
-
         else:
             print("Pilihan tidak valid. Silakan coba lagi.")
-
-
 if __name__ == "__main__":
     letter_page()

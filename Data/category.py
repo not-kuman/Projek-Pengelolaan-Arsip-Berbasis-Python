@@ -15,10 +15,8 @@ def get_user_role(username):
     """Mendapatkan role user dari tabel account."""
     conn = create_db_connection()
     cursor = conn.cursor()
-    
     cursor.execute('SELECT role FROM account WHERE username = ?', (username,))
     result = cursor.fetchone()
-    
     if result:
         return result[0]
     else:
@@ -44,7 +42,6 @@ def tambah_kategori(categories_name, categories_code, description):
     conn = create_db_connection()
     cursor = conn.cursor()
     created_at = update_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
     try:
         cursor.execute('''INSERT INTO categories (categories_name, categories_code, description, created_at, update_at)
                           VALUES (?, ?, ?, ?, ?)''', 
@@ -60,10 +57,8 @@ def lihat_kategori():
     """Melihat semua kategori yang ada di tabel categories."""
     conn = create_db_connection()
     cursor = conn.cursor()
-
     cursor.execute('SELECT * FROM categories')
     rows = cursor.fetchall()
-
     if rows:
         print("\nDaftar Kategori:")
         for row in rows:
@@ -78,13 +73,11 @@ def edit_kategori(categories_id, new_name, new_code, new_description):
     conn = create_db_connection()
     cursor = conn.cursor()
     update_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
     try:
         cursor.execute('''UPDATE categories 
                           SET categories_name = ?, categories_code = ?, description = ?, update_at = ?
                           WHERE categories_id = ?''', 
                           (new_name, new_code, new_description, update_at, categories_id))
-
         if cursor.rowcount > 0:
             print(f"Kategori dengan ID {categories_id} berhasil diperbarui.")
         else:
@@ -99,9 +92,7 @@ def hapus_kategori(categories_id):
     """Menghapus kategori berdasarkan ID."""
     conn = create_db_connection()
     cursor = conn.cursor()
-
     cursor.execute('DELETE FROM categories WHERE categories_id = ?', (categories_id,))
-
     if cursor.rowcount > 0:
         print(f"Kategori dengan ID {categories_id} berhasil dihapus.")
     else:
@@ -127,7 +118,6 @@ def halaman_kategori():
         print("5. Kembali ke Menu user/admin")
         print("6. Kembali ke Menu Login")
         print("7. Kembali ke Menu Utama")
-
         try:
             pilihan = int(input("Masukkan pilihan: "))
             if pilihan == 1:
@@ -140,7 +130,6 @@ def halaman_kategori():
                         tambah_kategori(categories_name, categories_code, description)
             elif pilihan == 2:
                 lihat_kategori()
-            
             elif pilihan == 3:
                 if role == 'admin':
                     try:
@@ -156,7 +145,6 @@ def halaman_kategori():
                         print("ID kategori harus berupa angka.")
                 else:
                     print("Maaf, hanya admin yang dapat mengedit kategori.")
-            
             elif pilihan == 4:
                 if role == 'admin':
                     try:
@@ -166,7 +154,6 @@ def halaman_kategori():
                         print("ID kategori harus berupa angka.")
                 else:
                     print("Maaf, hanya admin yang dapat menghapus kategori.")
-            
             elif pilihan == 5:
                 print("Anda Akan Kembali Ke Menu user/admin!!")
                 if role == "admin":
@@ -182,10 +169,8 @@ def halaman_kategori():
                 print("Anda Akan Kembali Ke Menu Utama!!")
                 menu()
                 return
-            
             else:
                 print("Pilihan tidak valid. Silakan coba lagi.")
-        
         except ValueError:
             print("Masukkan angka untuk memilih opsi.")
 

@@ -5,11 +5,11 @@ def menu():
             print("\nMenu Utama:")
             print("1. Mulai")
             print("2. Keluar")
-            choice = input("Pilih opsi (1, 2): ")
+            pilihan = input("Pilih opsi (1, 2): ")
             
-            if choice == "1":
+            if pilihan == "1":
                 Account.main()
-            elif choice == "2":
+            elif pilihan == "2":
                 print("Terima kasih telah menggunakan aplikasi.")
                 break
             else:

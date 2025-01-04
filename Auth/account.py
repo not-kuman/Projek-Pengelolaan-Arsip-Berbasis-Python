@@ -1,7 +1,13 @@
 import sqlite3
 import hashlib
 import re
-import datetime
+from Data.archived import halaman_arsip
+from Data.category import halaman_kategori
+from Data.logs import log_action
+from Data.logs import add_log_to_file
+from Data.surat import letter_page
+from Data.tindak_lanjut import letter_followup
+from mainmenu import menu
 
 DATABASE_NAME = 'DB_Arsip.db'
 def create_db_connection():
@@ -27,22 +33,19 @@ def validate_email(email):
     return bool(re.match(r"[^@]+@[^@]+\.[^@]+", email))
 
 class Account:
-    
+
     def __init__(self):
         self.username = None
         self.role = None
-
     def login(self):
         create_users_table()
         conn = create_db_connection()
         cursor = conn.cursor()
-
         username = input("Username: ").strip()
         password = hash_password(input("Password: ").strip())
         cursor.execute('SELECT role FROM account WHERE username = ? AND password = ?', 
                     (username, password))
         result = cursor.fetchone()
-        
         conn.close()
         if result:
             self.username = username
@@ -52,7 +55,6 @@ class Account:
         else:
             print("\nUsername atau password salah")
             return None 
-
 
     def create_account():
         create_users_table()
@@ -104,51 +106,42 @@ class Account:
         
         cursor.execute("SELECT account_id, username, email, role FROM account")
         accounts = cursor.fetchall()
-        
         if not accounts:
             print("Tidak ada akun yang terdaftar.")
             conn.close()
             return
-            
         for account in accounts:
             print(f"ID: {account[0]}, Username: {account[1]}, Email: {account[2]}, Role: {account[3]}")
             
         account_id = input("Masukkan ID akun yang ingin diedit: ")
         cursor.execute("SELECT * FROM account WHERE account_id = ?", (account_id,))
         user = cursor.fetchone()
-        
         if not user:
             print("ID akun tidak ditemukan.")
             conn.close()
             return
-            
         print(f"Data Akun: Username: {user[1]}, Email: {user[2]}, Role: {user[4]}")
-        
         new_email = input("Masukkan email baru (Enter untuk tidak mengubah): ")
         if new_email:
             if not validate_email(new_email):
                 print("Error: Format email tidak valid!")
                 conn.close()
                 return
-                
             cursor.execute("SELECT * FROM account WHERE email = ? AND account_id != ?", (new_email, account_id))
             if cursor.fetchone():
                 print("Email sudah terdaftar.")
                 conn.close()
                 return
-                
         new_password = input("Masukkan password baru (Enter untuk tidak mengubah): ")
         if new_password and len(new_password) < 6:
             print("Password harus lebih dari 6 karakter!")
             conn.close()
             return
-            
         new_role = input("Masukkan peran baru (admin/user) atau Enter: ").lower()
         if new_role and new_role not in ["admin", "user"]:
             print("Peran tidak valid.")
             conn.close()
             return
-            
         try:
             cursor.execute("""
                 UPDATE account 
@@ -168,27 +161,21 @@ class Account:
         create_users_table()
         conn = create_db_connection()
         cursor = conn.cursor()
-        
         cursor.execute("SELECT account_id, username, email, role FROM account")
         accounts = cursor.fetchall()
-        
         if not accounts:
             print("Tidak ada akun yang terdaftar.")
             conn.close()
             return
-            
         for account in accounts:
             print(f"ID: {account[0]}, Username: {account[1]}, Email: {account[2]}, Role: {account[3]}")
-            
         account_id = input("Masukkan ID akun yang ingin dihapus: ")
         cursor.execute("SELECT * FROM account WHERE account_id = ?", (account_id,))
         user = cursor.fetchone()
-        
         if not user:
             print("ID akun tidak ditemukan.")
             conn.close()
             return
-            
         if input("Konfirmasi penghapusan (y/n): ").lower() == 'y':
             try:
                 cursor.execute("DELETE FROM account WHERE account_id = ?", (account_id,))
@@ -198,17 +185,14 @@ class Account:
                 print(f"Terjadi kesalahan: {e}")
         else:
             print("Penghapusan dibatalkan.")
-            
         conn.close()
 
     def manage_user():
         create_users_table()
         conn = create_db_connection()
         cursor = conn.cursor()
-        
         cursor.execute("SELECT account_id, username, email, role FROM account")
         users = cursor.fetchall()
-        
         if users:
             print("\nDaftar Pengguna:")
             for user in users:
@@ -219,13 +203,6 @@ class Account:
         conn.close()
 
     def admin_access():
-        from Data.archived import halaman_arsip
-        from Data.category import halaman_kategori
-        from Data.logs import log_action
-        from Data.logs import add_log_to_file
-        from Data.surat import letter_page
-        from Data.tindak_lanjut import letter_followup
-        from menu import menu
         username = "admin"
         while True:
             print("\nSelamat Datang di Panel Admin")
@@ -239,7 +216,7 @@ class Account:
             print("8. Kelola Tindak Lanjut")
             print("9. Lihat Logs")
             print("10. Kembali ke Menu Utama")
-            pilihan = int(input("Pilih opsi (1-10): "))
+            pilihan = int(input("Masukkan pilihan: "))
             if pilihan == 1:
                 Account.create_account()
                 log_action("Create", username)
@@ -279,11 +256,6 @@ class Account:
                 print("Opsi tidak valid. Harap pilih 1-10.")
 
     def user_access():
-        from Data.archived import halaman_arsip
-        from Data.category import halaman_kategori
-        from Data.surat import letter_page
-        from Data.logs import log_action
-        from menu import menu
         username = "user"
         while True:
             print("\nSelamat Datang di Panel Pengguna")
@@ -291,7 +263,7 @@ class Account:
             print("2. Lihat Kategori")
             print("3. Lihat Surat")
             print("4. Kembali ke Menu Utama")
-            pilihan = int(input("Pilih opsi (1-4): "))
+            pilihan = int(input("Masukkan pilihan: "))
             if pilihan == 1:
                 halaman_arsip()
                 log_action("View", username)
@@ -309,33 +281,31 @@ class Account:
                 print("Opsi tidak valid. Harap pilih 1-4.")
 
     def main():
-        from menu import menu
         print("\nSelamat Datang Pengguna, Silahkan Pilih Opsi di bawah Ini!")
-        account = Account()  # Buat instance Account
-        exit_main = False  # Tambahkan flag untuk keluar dari loop utama
-
-        while not exit_main:
+        account = Account()
+        keluar = False
+        while not keluar:
             print("1. Buat Akun Baru")
             print("2. Login")
             print("3. Keluar ke Menu Utama")
-            pilihan = int(input("Pilih opsi (1, 2, 3): "))
+            pilihan = int(input("Masukkan pilihan:"))
             
             if pilihan == 1:
                 Account.create_account()
             elif pilihan == 2:
-                role = account.login()  # Login dan dapatkan peran
+                role = account.login()
                 
                 if role == "admin":
-                    Account.admin_access()  # Akses admin
-                    exit_main = True  # Keluar dari loop setelah akses admin
+                    Account.admin_access()
+                    keluar = True
                 elif role == "user":
-                    Account.user_access()  # Akses user
-                    exit_main = True  # Keluar dari loop setelah akses user
+                    Account.user_access()
+                    keluar = True 
                 else:
                     print("Login gagal. Silakan coba lagi.")
             elif pilihan == 3:
                 print("Kembali ke Menu Utama...")
                 menu()
-                exit_main = True  # Keluar dari loop utama
+                keluar = True
             else:
                 print("Opsi tidak valid. Harap pilih 1, 2, atau 3.")
