@@ -5,11 +5,11 @@ def menu():
             print("\nMenu Utama:")
             print("1. Mulai")
             print("2. Keluar")
-            pilihan = input("Pilih opsi (1, 2): ")
+            choice = input("Pilih opsi (1, 2): ")
             
-            if pilihan == "1":
+            if choice == "1":
                 Account.main()
-            elif pilihan == "2":
+            elif choice == "2":
                 print("Terima kasih telah menggunakan aplikasi.")
                 break
             else:
@@ -18,6 +18,5 @@ def menu():
         print("File 'Auth/account.py' tidak ditemukan. Pastikan file tersebut ada di direktori yang benar.")
     except Exception as e:
         print(f"Terjadi kesalahan: {e}")
-
 if __name__ == "__main__":
     menu()
