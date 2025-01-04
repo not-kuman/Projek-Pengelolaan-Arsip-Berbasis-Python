@@ -1,211 +1,198 @@
 import sqlite3
-Data = []
-Data.append("DB_Arsip.db")
-def tambah_arsip():
-    conn = sqlite3.connect('DB_Arsip.db')
+from datetime import datetime
+from Auth.account import Account
+
+account = Account()
+role = account.login()
+
+def create_db_connection():
+    """Helper function to create and return a database connection."""
+    return sqlite3.connect('DB_Arsip.db')
+
+def buat_tabel_arsip():
+    """Membuat tabel archives jika belum ada."""
+    conn = create_db_connection()
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS archives (
                        archives_id INTEGER PRIMARY KEY,
+                       category_id INTEGER,
+                       account_id INTEGER,
                        title TEXT,
                        description TEXT,
                        file_path TEXT,
-                       category_id INTEGER,
-                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-    print("Tabel Arsip berhasil dibuat!")
-    
+                       created_at TIMESTAMP,
+                       updated_at TIMESTAMP,
+                       FOREIGN KEY (category_id) REFERENCES categories(categories_id),
+                       FOREIGN KEY (account_id) REFERENCES account(account_id))''')
+    conn.commit()
+    conn.close()
+
+def tambah_arsip(category_id, account_id, title, description, file_path):
+    """Menambahkan arsip baru ke tabel archives."""
+    conn = create_db_connection()
+    cursor = conn.cursor()
+    created_at = updated_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
     try:
-        archives_id = int(input("Masukkan Archives ID: "))
-        title = input("Masukkan Title: ")
-        description = input("Masukkan Description: ")
-        file_path = input("Masukkan File Path: ")
-        category_id = int(input("Masukkan Category ID: "))
-        
-        cursor.execute("INSERT INTO archives (archives_id, title, description, file_path, category_id) VALUES (?, ?, ?, ?, ?)", 
-                       (archives_id, title, description, file_path, category_id))
+        cursor.execute('''INSERT INTO archives (category_id, account_id, title, description, file_path, created_at, updated_at)
+                          VALUES (?, ?, ?, ?, ?, ?, ?)''', 
+                          (category_id, account_id, title, description, file_path, created_at, updated_at))
         conn.commit()
-        print("Data arsip berhasil ditambahkan!")
-    except ValueError:
-        print("Input tidak valid. Pastikan Archives ID dan Category ID berupa angka.")
+        print("Arsip berhasil ditambahkan.")
+    except sqlite3.IntegrityError as e:
+        print(f"Terjadi kesalahan: {e}")
     finally:
         conn.close()
-    halaman_arsip()
 
 def lihat_arsip():
-    conn = sqlite3.connect('DB_Arsip.db')
+    """Melihat semua arsip yang ada di tabel archives."""
+    conn = create_db_connection()
     cursor = conn.cursor()
-    
-    cursor.execute("SELECT * FROM archives")
-    rows = cursor.fetchall()
-    
-    if rows:
-        print("Data Arsip:")
-        for row in rows:
-            print(f"ID: {row[0]}, Title: {row[1]}, Description: {row[2]}, File Path: {row[3]}, Category ID: {row[4]}")
-    else:
-        print("Tidak ada data arsip.")
-    
-    conn.close()
-    halaman_arsip()
 
-def edit_arsip():
-    conn = sqlite3.connect('DB_Arsip.db')
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT * FROM archives")
+    cursor.execute('''SELECT a.archives_id, a.title, a.description, a.file_path, a.created_at, a.updated_at, c.categories_name, acc.username
+                      FROM archives a
+                      JOIN categories c ON a.category_id = c.categories_id
+                      JOIN account acc ON a.account_id = acc.account_id''')
     rows = cursor.fetchall()
-    
-    if rows:
-        print("Data Arsip Sebelum Pembaruan:")
-        for row in rows:
-            print(f"ID: {row[0]}, Title: {row[1]}, Description: {row[2]}, File Path: {row[3]}, Category ID: {row[4]}")
-        
-        try:
-            archives_id = int(input("Masukkan ID arsip yang ingin diubah: "))
-            cursor.execute("SELECT * FROM archives WHERE archives_id = ?", (archives_id,))
-            if cursor.fetchone():
-                title = input("Masukkan Title Baru: ")
-                description = input("Masukkan Description Baru: ")
-                file_path = input("Masukkan File Path Baru: ")
-                category_id = int(input("Masukkan Category ID Baru: "))
-                
-                cursor.execute("UPDATE archives SET title = ?, description = ?, file_path = ?, category_id = ?, updated_at = CURRENT_TIMESTAMP WHERE archives_id = ?", 
-                               (title, description, file_path, category_id, archives_id))
-                conn.commit()
-                print("Data arsip berhasil diperbarui!")
-            else:
-                print("ID arsip tidak ditemukan.")
-        except ValueError:
-            print("Input tidak valid. Pastikan Archives ID dan Category ID berupa angka.")
-    else:
-        print("Tidak ada data untuk diperbarui.")
-    
-    conn.close()
-    halaman_arsip()
 
-def hapus_arsip():
-    conn = sqlite3.connect('DB_Arsip.db')
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT * FROM archives")
-    rows = cursor.fetchall()
-    
     if rows:
-        print("Data Arsip Sebelum Penghapusan:")
+        print("\nDaftar Arsip:")
         for row in rows:
-            print(f"ID: {row[0]}, Title: {row[1]}, Description: {row[2]}, File Path: {row[3]}, Category ID: {row[4]}")
-        
-        try:
-            archives_id = int(input("Masukkan ID arsip yang ingin dihapus: "))
-            cursor.execute("SELECT * FROM archives WHERE archives_id = ?", (archives_id,))
-            if cursor.fetchone():
-                cursor.execute("DELETE FROM archives WHERE archives_id = ?", (archives_id,))
-                conn.commit()
-                print("Data arsip berhasil dihapus!")
-            else:
-                print("ID arsip tidak ditemukan.")
-        except ValueError:
-            print("Input tidak valid. Pastikan Archives ID berupa angka.")
+            print(f"ID: {row[0]}, Title: {row[1]}, Description: {row[2]}, File Path: {row[3]}, Created At: {row[4]}, Updated At: {row[5]}, Category: {row[6]}, Uploaded By: {row[7]}")
     else:
-        print("Tidak ada data untuk dihapus.")
-    
-    conn.close()
-    halaman_arsip()
+        print("Tidak ada arsip yang ditemukan.")
 
-def tampilkan_arsip():
-    conn = sqlite3.connect('DB_Arsip.db')
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT * FROM archives")
-    rows = cursor.fetchall()
-    
-    if rows:
-        print("Data Arsip:")
-        for row in rows:
-            print(f"ID: {row[0]}, Title: {row[1]}, Description: {row[2]}, File Path: {row[3]}, Category ID: {row[4]}")
-    else:
-        print("Tidak ada data arsip.")
-    
     conn.close()
-    halaman_arsip()
+
+def edit_arsip(archives_id, new_title, new_description, new_file_path):
+    """Mengedit arsip berdasarkan ID."""
+    conn = create_db_connection()
+    cursor = conn.cursor()
+    updated_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    try:
+        cursor.execute('''UPDATE archives 
+                          SET title = ?, description = ?, file_path = ?, updated_at = ?
+                          WHERE archives_id = ?''', 
+                          (new_title, new_description, new_file_path, updated_at, archives_id))
+
+        if cursor.rowcount > 0:
+            print(f"Arsip dengan ID {archives_id} berhasil diperbarui.")
+        else:
+            print(f"Arsip dengan ID {archives_id} tidak ditemukan.")
+    finally:
+        conn.commit()
+        conn.close()
+
+def hapus_arsip(archives_id):
+    """Menghapus arsip berdasarkan ID."""
+    conn = create_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('DELETE FROM archives WHERE archives_id = ?', (archives_id,))
+
+    if cursor.rowcount > 0:
+        print(f"Arsip dengan ID {archives_id} berhasil dihapus.")
+    else:
+        print(f"Arsip dengan ID {archives_id} tidak ditemukan.")
+
+    conn.commit()
+    conn.close()
 
 def halaman_arsip():
+    """Menampilkan halaman arsip dengan mengecek role dari tabel account."""
+    buat_tabel_arsip()
     from Auth.account import Account
-    account = Account()  # Create an instance of Account
-    role = account.get_role()  # Call get_role without arguments
-    print(f"Role yang didapat: {role}")   
-    if role == 'admin':
-        while True:
-            from Auth.account import Account
-            from menu import menu
-            print("\n--- Halaman Arsip ---")
-            print("1. Tambah data arsip")
-            print("2. Lihat data arsip")
-            print("3. Edit data arsip")
-            print("4. Hapus data arsip")
-            print("5. Tampilkan data arsip")
-            print("6. Kembali ke Menu admin")
-            print("7. Kembali ke Menu Login")
-            print("8. Kembali ke Menu Utama")
-            try:
-                pilihan = int(input("Masukkan pilihan: "))
-                if pilihan == 1:
-                    tambah_arsip()
-                elif pilihan == 2:
-                    lihat_arsip()
-                elif pilihan == 3:
-                    edit_arsip()
-                elif pilihan == 4:
-                    hapus_arsip()
-                elif pilihan == 5:
-                    tampilkan_arsip()
-                elif pilihan == 6:
-                    print("Anda Akan Kembali Ke Menu admin!!")
-                    Account.admin_access()
-                elif pilihan == 7:
-                    print("Anda Akan Kembali Ke Menu Login!!")
-                    Account.main()
-                elif pilihan == 8:
-                    print("Anda Akan Kembali Ke Menu Utama!!")
-                    menu()
-                else:
-                    print("Pilihan tidak valid. Silakan coba lagi.")
-                    halaman_arsip()
-            except ValueError:
-                print("Masukkan angka untuk memilih. Silakan coba lagi.")
-                halaman_arsip()
-    elif role == 'user' :
-        while True:
-            from Auth.account import Account
-            from menu import menu
-            print("\n--- Halaman Arsip User ---")
-            print("1. Tambah data arsip")
-            print("2. Lihat data arsip")
-            print("3. Kembali ke Menu User")
-            print("4. Kembali ke Menu Login")
-            print("5. Kembali ke Menu Utama")
-            try:
-                pilihan = int(input("Masukkan pilihan: "))
-                if pilihan == 1:
-                    tambah_arsip()
-                elif pilihan == 2:
-                    lihat_arsip()
-                elif pilihan == 3:
-                    print("Anda Akan Kembali Ke Menu admin!!")
-                    Account.user_access()
-                elif pilihan == 4:
-                    print("Anda Akan Kembali Ke Menu Login!!")
-                    Account.main()
-                elif pilihan == 5:
-                    print("Anda Akan Kembali Ke Menu Utama!!")
-                    menu()
-                else:
-                    print("Pilihan tidak valid.")
-                    halaman_arsip()
-            except ValueError:
-                print("Masukkan angka untuk memilih.")  
-    else:
-        print("Role tidak valid. Silahkan coba lagi")
+    from mainmenu import menu
+
+    global role
+    if role is None:
+        print("Silakan login terlebih dahulu")
         return
+
+    while True:
+        print("\n--- Halaman Arsip ---")
+        print("1. Tambah Arsip")
+        print("2. Lihat Arsip")
+        print("3. Edit Arsip")
+        print("4. Hapus Arsip")
+        print("5. Kembali ke Menu user/admin")
+        print("6. Kembali ke Menu Login")
+        print("7. Kembali ke Menu Utama")
+
+        try:
+            pilihan = int(input("Masukkan pilihan: "))
+            if pilihan == 1:
+                if role == 'admin':
+                    try:
+                        category_id = int(input("Masukkan ID kategori: "))
+                        account_id = int(input("Masukkan ID akun: "))
+                        title = input("Masukkan judul arsip: ").strip()
+                        description = input("Masukkan deskripsi arsip: ").strip()
+                        file_path = input("Masukkan path file arsip: ").strip()
+
+                        if not title or not description or not file_path:
+                            print("Judul, deskripsi, dan file path tidak boleh kosong!")
+                        else:
+                            tambah_arsip(category_id, account_id, title, description, file_path)
+                    except ValueError:
+                        print("ID kategori dan ID akun harus berupa angka.")
+                else:
+                    print("Maaf, hanya admin yang dapat menambah arsip.")
+
+            elif pilihan == 2:
+                lihat_arsip()
+
+            elif pilihan == 3:
+                if role == 'admin':
+                    try:
+                        archives_id = int(input("Masukkan ID arsip yang ingin diedit: "))
+                        new_title = input("Masukkan judul baru arsip: ").strip()
+                        new_description = input("Masukkan deskripsi baru arsip: ").strip()
+                        new_file_path = input("Masukkan path file baru arsip: ").strip()
+
+                        if not new_title or not new_description or not new_file_path:
+                            print("Judul, deskripsi, dan file path tidak boleh kosong!")
+                        else:
+                            edit_arsip(archives_id, new_title, new_description, new_file_path)
+                    except ValueError:
+                        print("ID arsip harus berupa angka.")
+                else:
+                    print("Maaf, hanya admin yang dapat mengedit arsip.")
+
+            elif pilihan == 4:
+                if role == 'admin':
+                    try:
+                        archives_id = int(input("Masukkan ID arsip yang ingin dihapus: "))
+                        hapus_arsip(archives_id)
+                    except ValueError:
+                        print("ID arsip harus berupa angka.")
+                else:
+                    print("Maaf, hanya admin yang dapat menghapus arsip.")
+
+            elif pilihan == 5:
+                print("Anda Akan Kembali Ke Menu user/admin!!")
+                if role == "admin":
+                    Account.admin_access()
+                else:
+                    Account.user_access()
+                return
+
+            elif pilihan == 6:
+                print("Anda Akan Kembali Ke Menu Login!!")
+                Account.main()
+                return
+
+            elif pilihan == 7:
+                print("Anda Akan Kembali Ke Menu Utama!!")
+                menu()
+                return
+
+            else:
+                print("Pilihan tidak valid. Silakan coba lagi.")
+
+        except ValueError:
+            print("Masukkan angka untuk memilih opsi.")
+
 if __name__ == "__main__":
     halaman_arsip()

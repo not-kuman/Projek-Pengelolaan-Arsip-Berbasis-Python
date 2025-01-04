@@ -26,41 +26,32 @@ def validate_email(email):
     return bool(re.match(r"[^@]+@[^@]+\.[^@]+", email))
 
 class Account:
-    global role
-    def get_user_role(self):
-        # Logika untuk menentukan peran pengguna
-        # Misalnya, jika username adalah "admin_user", maka perannya adalah "admin"
-        if self.role == "role":
-            return "admin"
-        else:
-            return "user"
+    def __init__(self):
+        self.username = None
+        self.role = None
 
-    def get_role(self):
-        return self.role  
-    def login():
+    def login(self):
         create_users_table()
         conn = create_db_connection()
         cursor = conn.cursor()
-        username = input("Masukkan username: ")
-        password = input("Masukkan password: ")
+
+        username = input("Username: ").strip()
+        password = hash_password(input("Password: ").strip())
+        cursor.execute('SELECT role FROM account WHERE username = ? AND password = ?', 
+                    (username, password))
+        result = cursor.fetchone()
         
-        if not username or not password:
-            print("Username dan password tidak boleh kosong!")
-            conn.close()
-            return None
-        hashed_password = hash_password(password)
-        cursor.execute("SELECT role FROM account WHERE username = ? AND password = ?",  (username, hashed_password))
-        user = cursor.fetchone()
-        
-        if user:
-            print(f"Selamat Datang {username}.")
-            print(f"Anda adalah {user[0]}.")
-            conn.close()
-            return user[0]
+        conn.close()
+        if result:
+            self.username = username
+            self.role = result[0]
+            print(f"\nLogin berhasil sebagai {self.role}")
+            return self.role  # Kembalikan peran pengguna (admin atau user)
         else:
-            print("Username atau password salah!")
-            conn.close()
-            return None
+            print("\nUsername atau password salah")
+            return None  # Tidak ada peran jika login gagal
+
+
 
     def create_account():
         create_users_table()
@@ -318,8 +309,11 @@ class Account:
 
     def main():
         from menu import menu
-        print("\n Selamat Datang Pengguna, Silahkan Pilih Opsi dibawah Ini !!.")
-        while True:
+        print("\nSelamat Datang Pengguna, Silahkan Pilih Opsi di bawah Ini!")
+        account = Account()  # Buat instance Account
+        exit_main = False  # Tambahkan flag untuk keluar dari loop utama
+
+        while not exit_main:
             print("1. Buat Akun Baru")
             print("2. Login")
             print("3. Keluar ke Menu Utama")
@@ -328,19 +322,19 @@ class Account:
             if pilihan == 1:
                 Account.create_account()
             elif pilihan == 2:
-                role = Account.login()
+                role = account.login()  # Login dan dapatkan peran
+                
                 if role == "admin":
-                    Account.admin_access()
+                    Account.admin_access()  # Akses admin
+                    exit_main = True  # Keluar dari loop setelah akses admin
                 elif role == "user":
-                    Account.user_access()
+                    Account.user_access()  # Akses user
+                    exit_main = True  # Keluar dari loop setelah akses user
                 else:
                     print("Login gagal. Silakan coba lagi.")
             elif pilihan == 3:
                 print("Kembali ke Menu Utama...")
                 menu()
-                break
+                exit_main = True  # Keluar dari loop utama
             else:
                 print("Opsi tidak valid. Harap pilih 1, 2, atau 3.")
-
-    if __name__ == "__main__":
-        main()
