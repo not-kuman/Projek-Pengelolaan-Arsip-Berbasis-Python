@@ -60,8 +60,11 @@ langkah-langkah berikut untuk menjalankan projek ini:
 Sebelum itu harap dipastikan untuk menginstall semua alat dan bahan terlebih dahulu
 
 -Download Python, Download hanya di website resmi python: https://www.python.org/downloads/
+
 -Download git, Download hanya di website resmi git : https://git-scm.com/downloads   (optional)
+
 -Download Visual Studio Code, Download hanya di website resmi VS Code : https://code.visualstudio.com/download
+
 
 Clone Repository
 ```bash
