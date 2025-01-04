@@ -1,4 +1,5 @@
 import sqlite3
+role = ["admin","user"]
 import hashlib
 import re
 
@@ -25,6 +26,17 @@ def validate_email(email):
     return bool(re.match(r"[^@]+@[^@]+\.[^@]+", email))
 
 class Account:
+    global role
+    def get_user_role(self):
+        # Logika untuk menentukan peran pengguna
+        # Misalnya, jika username adalah "admin_user", maka perannya adalah "admin"
+        if self.role == "role":
+            return "admin"
+        else:
+            return "user"
+
+    def get_role(self):
+        return self.role  
     def login():
         create_users_table()
         conn = create_db_connection()
@@ -215,11 +227,12 @@ class Account:
         conn.close()
 
     def admin_access():
-        from Data.archives import halaman_arsip
+        from Data.archived import halaman_arsip
         from Data.category import halaman_kategori
         from Data.logs import log_action
+        from Data.logs import get_account_activity
         from Data.surat import letter_page
-        from Data.tindak_lanjut import  letter_followup
+        from Data.tindak_lanjut import letter_followup
         from menu import menu
         username = "admin"
         while True:
@@ -234,85 +247,74 @@ class Account:
             print("8. Kelola Tindak Lanjut")
             print("9. Lihat Logs")
             print("10. Kembali ke Menu Utama")
-            pilihan = input("Pilih opsi (1-10): ")
+            pilihan = int(input("Pilih opsi (1-10): "))
             if pilihan == 1:
                 Account.create_account()
-                log_action("Created a new account", username)
+                log_action("Create", username)
             elif pilihan == 2:
                 Account.edit_account()
-                log_action("Edited an account", username)
+                log_action("Update", username)
             elif pilihan == 3:
                 Account.delete_account()
-                log_action("Deleted an account", username)
+                log_action("Delete", username)
             elif pilihan == 4:
                 Account.manage_user()
-                log_action("Managed user accounts", username)
+                log_action("Update", username)
             elif pilihan == 5:
                 halaman_arsip()
-                log_action("Managed archives", username)
+                log_action("Update", username)
                 break
             elif pilihan == 6:
                 halaman_kategori()
-                log_action("Managed categories", username)
+                log_action("Update", username)
                 break
             elif pilihan == 7:
                 letter_page()
-                log_action("Managed surat", username)
+                log_action("Update", username)
                 break
             elif pilihan == 8:
                 letter_followup()
-                log_action("Managed tindak lanjut", username)
+                log_action("Update", username)
                 break
             elif pilihan == 9:
-                print("\n--- Logs ---")
-                try:
-                    with open("logs.txt", "r") as log_file:
-                        print(log_file.read())
-                except FileNotFoundError:
-                    print("No logs found.")
+                get_account_activity()
+                log_action("View", username)
             elif pilihan == 10:
                 print("Kembali ke Menu Utama...")
                 menu()
                 break
             else:
-                print("Opsi tidak valid. Silakan pilih lagi.")
+                print("Opsi tidak valid. Harap pilih 1-10.")
 
     def user_access():
-        from Data.archives import halaman_arsip
+        from Data.archived import halaman_arsip
         from Data.category import halaman_kategori
         from Data.surat import letter_page
         from Data.logs import log_action
         from menu import menu
         username = "user"
         while True:
-            print("\nSelamat Datang di Panel User")
-            print("1. Buat Akun Baru")
-            print("2. Kelola Arsip")
-            print("3. Kelola Kategori")
-            print("4. Kelola Surat")
-            print("5. Kembali ke Menu Utama")
-            pilihan = int(input("Pilihan menu: "))
+            print("\nSelamat Datang di Panel Pengguna")
+            print("1. Lihat Arsip")
+            print("2. Lihat Kategori")
+            print("3. Lihat Surat")
+            print("4. Kembali ke Menu Utama")
+            pilihan = int(input("Pilih opsi (1-4): "))
             if pilihan == 1:
-                Account.create_account()
-                log_action("Created a new account", username)
-            elif pilihan == 2:
                 halaman_arsip()
-                log_action("Managed archives", username)
-                break
-            elif pilihan ==3:
+                log_action("View", username)
+            elif pilihan == 2:
                 halaman_kategori()
-                log_action("Managed categories", username)
-                break
-            elif pilihan == 4:
+                log_action("View", username)
+            elif pilihan == 3:
                 letter_page()
-                log_action("Managed surat", username)
-                break
-            elif pilihan == 5:
-                print("Kembali ke Menu Login...")
-                Account.main()
+                log_action("View", username)
+            elif pilihan == 4:
+                print("Kembali ke Menu Utama...")
+                menu()
                 break
             else:
-                print("Opsi tidak valid. Silakan pilih lagi.")
+                print("Opsi tidak valid. Harap pilih 1-4.")
 
     def main():
         from menu import menu
@@ -321,11 +323,11 @@ class Account:
             print("1. Buat Akun Baru")
             print("2. Login")
             print("3. Keluar ke Menu Utama")
-            pilihan = input(int("Pilih opsi (1, 2, 3): "))
+            pilihan = int(input("Pilih opsi (1, 2, 3): "))
             
-            if pilihan ==1:
+            if pilihan == 1:
                 Account.create_account()
-            elif pilihan ==2:
+            elif pilihan == 2:
                 role = Account.login()
                 if role == "admin":
                     Account.admin_access()
@@ -333,7 +335,7 @@ class Account:
                     Account.user_access()
                 else:
                     print("Login gagal. Silakan coba lagi.")
-            elif pilihan ==3:
+            elif pilihan == 3:
                 print("Kembali ke Menu Utama...")
                 menu()
                 break

@@ -18,6 +18,5 @@ def menu():
         print("File 'Auth/account.py' tidak ditemukan. Pastikan file tersebut ada di direktori yang benar.")
     except Exception as e:
         print(f"Terjadi kesalahan: {e}")
-
 if __name__ == "__main__":
     menu()

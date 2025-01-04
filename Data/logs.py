@@ -37,45 +37,13 @@ def create_logs_table():
     conn.commit()
     conn.close()
 
-def log_action(account_id, action, archives_id=None, letter_id=None):
-    """
-    Log an action to the database.
-    """
-    valid_actions = {'Create', 'Update', 'Delete', 'View'}
+def log_action(action, username):
+    valid_actions = {'Create', 'View', 'Update', 'Delete'}
     if action not in valid_actions:
         raise ValueError(f"Invalid action. Must be one of {valid_actions}")
+    # Implement the logging logic here
+    print(f"Action: {action}, User: {username}")
 
-    try:
-        conn = create_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO logs (account_id, action, archives_id, letter_id)
-            VALUES (?, ?, ?, ?)
-        ''', (account_id, action, archives_id, letter_id))
-        conn.commit()
-    except sqlite3.Error as e:
-        print(f"Database error: {e}")
-    finally:
-        conn.close()
-
-def get_account_activity(account_id):
-    """
-    Retrieve activity logs for a specific account.
-    """
-    conn = create_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('''
-        SELECT logs_id, action, archives_id, letter_id, timestamp
-        FROM logs
-        WHERE account_id = ?
-        ORDER BY timestamp DESC
-    ''', (account_id,))
-    activities = cursor.fetchall()
-    conn.close()
-    
-    if activities:
-        for log in activities:
-            print(f"Log ID: {log[0]}, Action: {log[1]}, Archives ID: {log[2]}, "
-                  f"Letter ID: {log[3]}, Time: {log[4]}")
-    else:
-        print(f"No activity found for Account ID {account_id}")
+def get_account_activity():
+    # Implement the logic to get account activity here
+    print("Menampilkan aktivitas akun...")
