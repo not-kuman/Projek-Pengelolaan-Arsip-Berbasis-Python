@@ -2,13 +2,14 @@ import sqlite3
 from datetime import datetime
 from Auth.account import Account
 
+DATABASE_NAME = 'DB_Arsip.db'
 account = Account()
 role = account.login()
 
 
 def create_db_connection():
     """Helper function to create and return a database connection."""
-    return sqlite3.connect('DB_Arsip.db')
+    return sqlite3.connect(DATABASE_NAME)
 
 def get_user_role(username):
     """Mendapatkan role user dari tabel account."""
@@ -130,7 +131,6 @@ def halaman_kategori():
         try:
             pilihan = int(input("Masukkan pilihan: "))
             if pilihan == 1:
-                if role == 'admin':
                     categories_name = input("Masukkan nama kategori: ").strip()
                     categories_code = input("Masukkan kode kategori: ").strip()
                     description = input("Masukkan deskripsi kategori: ").strip()
@@ -138,9 +138,6 @@ def halaman_kategori():
                         print("Nama, kode, dan deskripsi kategori tidak boleh kosong!")
                     else:
                         tambah_kategori(categories_name, categories_code, description)
-                else:
-                    print("Maaf, hanya admin yang dapat menambah kategori.")
-            
             elif pilihan == 2:
                 lihat_kategori()
             

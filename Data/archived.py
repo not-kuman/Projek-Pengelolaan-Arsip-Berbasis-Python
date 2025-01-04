@@ -2,12 +2,13 @@ import sqlite3
 from datetime import datetime
 from Auth.account import Account
 
+DATABASE_NAME = 'DB_Arsip.db'
 account = Account()
 role = account.login()
 
 def create_db_connection():
     """Helper function to create and return a database connection."""
-    return sqlite3.connect('DB_Arsip.db')
+    return sqlite3.connect(DATABASE_NAME)
 
 def buat_tabel_arsip():
     """Membuat tabel archives jika belum ada."""
@@ -123,7 +124,6 @@ def halaman_arsip():
         try:
             pilihan = int(input("Masukkan pilihan: "))
             if pilihan == 1:
-                if role == 'admin':
                     try:
                         category_id = int(input("Masukkan ID kategori: "))
                         account_id = int(input("Masukkan ID akun: "))
@@ -137,9 +137,6 @@ def halaman_arsip():
                             tambah_arsip(category_id, account_id, title, description, file_path)
                     except ValueError:
                         print("ID kategori dan ID akun harus berupa angka.")
-                else:
-                    print("Maaf, hanya admin yang dapat menambah arsip.")
-
             elif pilihan == 2:
                 lihat_arsip()
 

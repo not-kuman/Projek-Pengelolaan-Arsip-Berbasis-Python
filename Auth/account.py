@@ -1,10 +1,11 @@
 import sqlite3
-role = ["admin","user"]
 import hashlib
 import re
+import datetime
 
+DATABASE_NAME = 'DB_Arsip.db'
 def create_db_connection():
-    return sqlite3.connect('DB_Arsip.db')
+    return sqlite3.connect(DATABASE_NAME)
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -26,6 +27,7 @@ def validate_email(email):
     return bool(re.match(r"[^@]+@[^@]+\.[^@]+", email))
 
 class Account:
+    
     def __init__(self):
         self.username = None
         self.role = None
@@ -46,11 +48,10 @@ class Account:
             self.username = username
             self.role = result[0]
             print(f"\nLogin berhasil sebagai {self.role}")
-            return self.role  # Kembalikan peran pengguna (admin atau user)
+            return self.role  
         else:
             print("\nUsername atau password salah")
-            return None  # Tidak ada peran jika login gagal
-
+            return None 
 
 
     def create_account():
@@ -221,7 +222,7 @@ class Account:
         from Data.archived import halaman_arsip
         from Data.category import halaman_kategori
         from Data.logs import log_action
-        from Data.logs import get_account_activity
+        from Data.logs import add_log_to_file
         from Data.surat import letter_page
         from Data.tindak_lanjut import letter_followup
         from menu import menu
@@ -268,7 +269,7 @@ class Account:
                 log_action("Update", username)
                 break
             elif pilihan == 9:
-                get_account_activity()
+                add_log_to_file()
                 log_action("View", username)
             elif pilihan == 10:
                 print("Kembali ke Menu Utama...")

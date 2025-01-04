@@ -3,12 +3,23 @@ from datetime import datetime
 from Auth.account import Account
 from menu import menu
 
+account = Account()
+role = account.login()
+account_id = account.login()  # Pastikan ada metode untuk mendapatkan account_id pengguna yang login
+
+
+def create_db_connection():
+    """Helper function to create and return a database connection."""
+    return sqlite3.connect('DB_Arsip.db')
+
+
 def create_letter_table():
-    conn = sqlite3.connect('DB_Arsip.db')
+    """Membuat tabel surat jika belum ada."""
+    conn = create_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS letter (
-            letter_id INTEGER PRIMARY KEY,
+            letter_id INTEGER PRIMARY KEY AUTOINCREMENT,
             account_id INTEGER,
             letter_content VARCHAR,
             sender VARCHAR,
@@ -17,115 +28,173 @@ def create_letter_table():
             status TEXT CHECK(status IN ('in process', 'completed')),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (account_id) REFERENCES accounts(account_id)
+            FOREIGN KEY (account_id) REFERENCES account(account_id)
         )
     ''')
     conn.commit()
     conn.close()
 
-def add_letter(account_id, letter_content, sender, content, date_received, status):
-    conn = sqlite3.connect('DB_Arsip.db')
+
+def add_letter(letter_content, sender, content, date_received, status):
+    """Menambahkan surat baru ke tabel letter."""
+    conn = create_db_connection()
     cursor = conn.cursor()
-    cursor.execute('''
-        INSERT INTO letter (account_id, letter_content, sender, content, date_received, status)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (account_id, letter_content, sender, content, date_received, status))
-    conn.commit()
-    conn.close()
+    try:
+        cursor.execute('''
+            INSERT INTO letter (account_id, letter_content, sender, content, date_received, status)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (account_id, letter_content, sender, content, date_received, status))
+        conn.commit()
+        print("Surat berhasil ditambahkan.")
+    except sqlite3.Error as e:
+        print(f"Terjadi kesalahan saat menambahkan surat: {e}")
+    finally:
+        conn.close()
+
 
 def view_letters():
-    conn = sqlite3.connect('DB_Arsip.db')
+    """Melihat semua surat yang ada di tabel letter."""
+    conn = create_db_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM letter')
+    cursor.execute('SELECT * FROM letter WHERE account_id = ?', (account_id,))
     letters = cursor.fetchall()
     if letters:
+        print("\nDaftar Surat:")
         for letter in letters:
-            print(f"ID: {letter[0]}, Account: {letter[1]}, Content: {letter[2]}, "
-                  f"Sender: {letter[3]}, Text: {letter[4]}, Date: {letter[5]}, "
-                  f"Status: {letter[6]}, Created: {letter[7]}, Updated: {letter[8]}")
+            print(f"ID: {letter[0]}, Account ID: {letter[1]}, Konten: {letter[2]}, Pengirim: {letter[3]}, "
+                  f"Isi: {letter[4]}, Tanggal Diterima: {letter[5]}, Status: {letter[6]}, "
+                  f"Dibuat: {letter[7]}, Diperbarui: {letter[8]}")
     else:
-        print("No letters found.")
+        print("Tidak ada surat yang ditemukan.")
     conn.close()
+
 
 def edit_letter(letter_id, letter_content, sender, content, date_received, status):
-    conn = sqlite3.connect('DB_Arsip.db')
+    """Mengedit surat berdasarkan ID."""
+    conn = create_db_connection()
     cursor = conn.cursor()
-    update_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    cursor.execute('''
-        UPDATE letter
-        SET letter_content = ?, sender = ?, content = ?, 
-            date_received = ?, status = ?, update_at = ?
-        WHERE letter_id = ?
-    ''', (letter_content, sender, content, date_received, status, update_time, letter_id))
-    conn.commit()
-    conn.close()
+    update_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute('''
+            UPDATE letter
+            SET letter_content = ?, sender = ?, content = ?, 
+                date_received = ?, status = ?, update_at = ?
+            WHERE letter_id = ? AND account_id = ?
+        ''', (letter_content, sender, content, date_received, status, update_at, letter_id, account_id))
+        if cursor.rowcount > 0:
+            print(f"Surat dengan ID {letter_id} berhasil diperbarui.")
+        else:
+            print(f"Surat dengan ID {letter_id} tidak ditemukan atau Anda tidak memiliki akses.")
+    except sqlite3.Error as e:
+        print(f"Terjadi kesalahan saat memperbarui surat: {e}")
+    finally:
+        conn.commit()
+        conn.close()
+
 
 def delete_letter(letter_id):
-    conn = sqlite3.connect('DB_Arsip.db')
+    """Menghapus surat berdasarkan ID."""
+    conn = create_db_connection()
     cursor = conn.cursor()
-    cursor.execute('DELETE FROM letter WHERE letter_id = ?', (letter_id,))
-    conn.commit()
-    conn.close()
+    try:
+        cursor.execute('DELETE FROM letter WHERE letter_id = ? AND account_id = ?', (letter_id, account_id))
+        if cursor.rowcount > 0:
+            print(f"Surat dengan ID {letter_id} berhasil dihapus.")
+        else:
+            print(f"Surat dengan ID {letter_id} tidak ditemukan atau Anda tidak memiliki akses.")
+    except sqlite3.Error as e:
+        print(f"Terjadi kesalahan saat menghapus surat: {e}")
+    finally:
+        conn.commit()
+        conn.close()
 
-def letter_page(role, account_id):
+
+def letter_page():
+    """Menampilkan halaman pengelolaan surat."""
+    create_letter_table()
+    if role is None:
+        print("Silakan login terlebih dahulu.")
+        return
+
     while True:
-        print("\n=== Letter Management ===")
-        print("1. Add Letter")
-        print("2. View Letters")
+        print("\n=== Pengelolaan Surat ===")
+        print("1. Tambah Surat")
+        print("2. Lihat Surat")
         if role == "admin":
-            print("3. Edit Letter")
-            print("4. Delete Letter")
-        print("5. Back to Main Menu")
+            print("3. Edit Surat")
+            print("4. Hapus Surat")
+        print("5. Kembali ke Menu user/admin")
+        print("6. Kembali ke Menu Login")
+        print("7. Kembali ke Menu Utama")
 
-        choice = input("Enter choice: ")
-        
+        choice = input("Masukkan pilihan: ")
         if choice == "1":
-            letter_content = input("Enter letter content: ")
-            sender = input("Enter sender: ")
-            content = input("Enter content: ")
-            date_received = input("Enter date received (YYYY-MM-DD): ")
+            letter_content = input("Masukkan konten surat: ")
+            sender = input("Masukkan pengirim: ")
+            content = input("Masukkan isi surat: ")
+            date_received = input("Masukkan tanggal diterima (YYYY-MM-DD): ")
             try:
                 date_received = datetime.strptime(date_received, "%Y-%m-%d").date()
             except ValueError:
-                print("Invalid date format. Use YYYY-MM-DD.")
+                print("Format tanggal tidak valid. Gunakan format YYYY-MM-DD.")
                 continue
-            status = input("Enter status (in process/completed): ")
+            status = input("Masukkan status (in process/completed): ")
             if status not in ['in process', 'completed']:
-                print("Invalid status.")
+                print("Status tidak valid.")
                 continue
-            add_letter(account_id, letter_content, sender, content, date_received, status)
-            
+            add_letter(letter_content, sender, content, date_received, status)
+
         elif choice == "2":
             view_letters()
-            
+
         elif role == "admin" and choice == "3":
-            letter_id = int(input("Enter letter ID: "))
-            letter_content = input("Enter new letter content: ")
-            sender = input("Enter new sender: ")
-            content = input("Enter new content: ")
-            date_received = input("Enter new date received (YYYY-MM-DD): ")
             try:
-                date_received = datetime.strptime(date_received, "%Y-%m-%d").date()
+                letter_id = int(input("Masukkan ID surat yang ingin diedit: "))
+                letter_content = input("Masukkan konten baru surat: ")
+                sender = input("Masukkan pengirim baru: ")
+                content = input("Masukkan isi baru surat: ")
+                date_received = input("Masukkan tanggal diterima baru (YYYY-MM-DD): ")
+                try:
+                    date_received = datetime.strptime(date_received, "%Y-%m-%d").date()
+                except ValueError:
+                    print("Format tanggal tidak valid. Gunakan format YYYY-MM-DD.")
+                    continue
+                status = input("Masukkan status baru (in process/completed): ")
+                if status not in ['in process', 'completed']:
+                    print("Status tidak valid.")
+                    continue
+                edit_letter(letter_id, letter_content, sender, content, date_received, status)
             except ValueError:
-                print("Invalid date format. Use YYYY-MM-DD.")
-                continue
-            status = input("Enter new status (in process/completed): ")
-            if status not in ['in process', 'completed']:
-                print("Invalid status.")
-                continue
-            edit_letter(letter_id, letter_content, sender, content, date_received, status)
-            
+                print("ID surat harus berupa angka.")
+
         elif role == "admin" and choice == "4":
-            letter_id = int(input("Enter letter ID: "))
-            delete_letter(letter_id)
-            
+            try:
+                letter_id = int(input("Masukkan ID surat yang ingin dihapus: "))
+                delete_letter(letter_id)
+            except ValueError:
+                print("ID surat harus berupa angka.")
+
         elif choice == "5":
-            break
-            
+                print("Anda Akan Kembali Ke Menu user/admin!!")
+                if role == "admin":
+                    Account.admin_access()
+                else:
+                    Account.user_access()
+                return
+
+        elif choice == "6":
+                print("Anda Akan Kembali Ke Menu Login!!")
+                Account.main()
+                return
+
+        elif choice == "7":
+                print("Anda Akan Kembali Ke Menu Utama!!")
+                menu()
+                return
+
         else:
-            print("Invalid choice.")
+            print("Pilihan tidak valid. Silakan coba lagi.")
+
 
 if __name__ == "__main__":
-    create_letter_table()
-    # Test with admin role
-    letter_page("admin", 1)
+    letter_page()

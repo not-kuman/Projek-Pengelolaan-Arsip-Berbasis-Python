@@ -1,9 +1,10 @@
 import sqlite3
 import datetime
 from Auth.account import Account
-from menu import menu
 
 DATABASE_NAME = 'DB_Arsip.db'
+account = Account()
+role = account.login()
 
 def create_table():
     """
@@ -99,33 +100,39 @@ def  letter_followup():
     """
     Menu utama untuk pengelolaan tindak lanjut.
     """
+    from Auth.account import Account
+    from mainmenu import menu
+    global role
+    if role is None:
+        print("Silakan login terlebih dahulu")
+        return
     while True:
         print("\n=== Halaman Utama Tindak Lanjut ===")
-        print("1. Login")
         print("2. Tambah Tindak Lanjut")
         print("3. Tampilkan Semua Tindak Lanjut")
         print("4. Keluar")
         choice = input("Pilih opsi (1/2/3/4): ")
 
         if choice == "1":
-            role = Account
-            if role == "admin":
-                Account.admin_access()
-            elif role == "user":
-                print("Anda tidak memiliki akses ke halaman admin.")
-            else:
-                print("Login gagal. Silakan coba lagi.")
-
-        elif choice == "2":
             add_letter_followup()
-
-        elif choice == "3":
+        elif choice == "2":
             show_letter_followup()
+        elif choice ==  "3":
+                print("Anda Akan Kembali Ke Menu user/admin!!")
+                if role == "admin":
+                    Account.admin_access()
+                else:
+                    Account.user_access()
+                return
+        elif choice ==  "4":
+                print("Anda Akan Kembali Ke Menu Login!!")
+                Account.main()
+                return
+        elif choice ==  "5":
+                print("Anda Akan Kembali Ke Menu Utama!!")
+                menu()
+                return
 
-        elif choice == "4":
-            print("Keluar dari menu. Kembali ke Menu Awal!")
-            menu()
-            break
 
         else:
             print("Pilihan tidak valid. Silakan coba lagi.")
