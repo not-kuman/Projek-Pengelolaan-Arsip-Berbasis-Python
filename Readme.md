@@ -30,17 +30,17 @@ Anggota 6: Muhammad Asyhadullah
 
 ## 👥 Schedule Project
 
-|Nomor |Tanggal Mulai |Tanggal Selesai|        Nama Kegiatan         |      Tempat Lokasi    |Anggota yang mengerjakan| Status     |
-|   -  |     -        |      -        |          -                   |          -            |           -            |     -      |
-|   1  |7/12/2024     |23/12/2024     |Pembuatan Flowchart Admin     |Rumah Masing- Masing   |     Bagas Prasetyo     |  (Selesai) |
-|   2  |7/12/2024     |23/12/2024     |Pembuatan Flowchart User      |Rumah Masing- Masing   |    Muhammad Alfarisi   |  (Selesai) |
-|   3  |7/12/2024     |04/01/2025     |Pembuatan Laporan             |Rumah Masing- Masing   |Ega Satria Harshavardana|  (Selesai) |
-|   4  |7/12/2024     |04/01/2025     |Pembuatan Laporan             |Rumah Masing- Masing   |     Gathan Alfaraldy   |  (Selesai) |
-|   5  |7/12/2024     |04/01/2025     |Pembuatan Database            |Rumah Masing- Masing   |     Arsyad Sadewa      |  (Selesai) |
-|   6  |7/12/2024     |04/01/2025     |Pembuatan Kodingan User       |Rumah Masing- Masing   |     Arsyad Sadewa      |  (Selesai) |
-|   7  |7/12/2024     |04/01/2024     |Pembuatan Kodingan Admin      |Rumah Masing- Masing   |  Muhammad Asyhadullah  |  (Selesai) |
-|   8  |23/12/2024    |23/12/2024     |Pembuatan Video               |Rumah Gathan Alfaraldy |     Semua Anggota      |  (Selesai) |
-|   9  |23/12/2024    |23/12/2024     |Editing Video                 |Rumah Masing- Masing   |Ega Satria Harshavardan |  (Selesai) |
+|Nomor |Tanggal Mulai |Tanggal Selesai|        Nama Kegiatan         |      Tempat Lokasi    |Anggota yang mengerjakan| 
+|   -  |     -        |      -        |          -                   |          -            |           -            | 
+|   1  |7/12/2024     |23/12/2024     |Pembuatan Flowchart Admin     |Rumah Masing- Masing   |     Bagas Prasetyo     | 
+|   2  |7/12/2024     |23/12/2024     |Pembuatan Flowchart User      |Rumah Masing- Masing   |    Muhammad Alfarisi   | 
+|   3  |7/12/2024     |04/01/2025     |Pembuatan Laporan             |Rumah Masing- Masing   |Ega Satria Harshavardana| 
+|   4  |7/12/2024     |04/01/2025     |Pembuatan Laporan             |Rumah Masing- Masing   |     Gathan Alfaraldy   | 
+|   5  |7/12/2024     |04/01/2025     |Pembuatan Database            |Rumah Masing- Masing   |     Arsyad Sadewa      |  
+|   6  |7/12/2024     |04/01/2025     |Pembuatan Kodingan User       |Rumah Masing- Masing   |     Arsyad Sadewa      | 
+|   7  |7/12/2024     |04/01/2024     |Pembuatan Kodingan Admin      |Rumah Masing- Masing   |  Muhammad Asyhadullah  | 
+|   8  |23/12/2024    |23/12/2024     |Pembuatan Video               |Rumah Gathan Alfaraldy |     Semua Anggota      | 
+|   9  |23/12/2024    |23/12/2024     |Editing Video                 |Rumah Masing- Masing   |Ega Satria Harshavardan | 
 
 
 ---
